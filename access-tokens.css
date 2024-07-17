@@ -1,0 +1,20 @@
+
+.stf-access-tokens .access-token-generated-okay {
+  display: inline-block;
+}
+
+.stf-access-tokens .token-id-textarea {
+  resize: none;
+  cursor: text;
+  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  width: 85%;
+}
+
+.stf-access-tokens .key-list-id {
+  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-size: 10px;
+  margin-bottom: 2px;
+  color: #999999;
+  font-weight: 300;
+}
