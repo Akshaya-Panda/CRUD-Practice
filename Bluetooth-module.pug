@@ -1,0 +1,52 @@
+.widget-container.fluid-height.stf-general.stf-bluetooth-module(ng-controller='BluetoothModulesCtrl')
+  .heading
+    i.fa.fa-bluetooth
+    span(translate) Bluetooth Modules
+ 
+    button.btn.pull-right.btn-sm(
+      ng-click='toggleGenerate()',
+      ng-class='{ "btn-primary-outline": !showGenerate, "btn-primary": showGenerate }')
+      i.fa.fa-plus.fa-fw
+ 
+    a(ng-href='/#!/docs/Bluetooth-Modules').pull-right.btn.btn-sm
+      i.fa.fa-question-circle(uib-tooltip='{{"More about Bluetooth Modules" | translate}}', tooltip-placement='left')
+ 
+  .widget-content.padded
+    nothing-to-show(icon='fa-bluetooth', message='{{"No Bluetooth modules" | translate}}',
+      ng-if='!bluetoothModules.length && !showGenerate')
+ 
+    div(ng-show='showGenerate')
+      form(name='bluetoothForm', ng-submit='addModule()')
+        .form-group
+          label(translate) Name
+          input(type='text', class='form-control', ng-model='newModule.name', required)
+        .form-group
+          label(translate) Subroute
+          input(type='text', class='form-control', ng-model='newModule.subroute', required)
+        .form-group
+          label(translate) Local IP
+          input(type='text', class='form-control', ng-model='newModule.localip', required)
+        .form-group
+          label(translate) Port
+          input(type='text', class='form-control', ng-model='newModule.port', required)
+        button.btn.btn-primary(type='submit') Add Module
+ 
+    div(ng-show='showGenerated')
+      .alert.alert-info.selectable
+        button.btn.pull-right.btn-primary.btn-sm(ng-click='closeGenerated()')
+          i.fa.fa-check.fa-fw
+        textarea(readonly, rows='2', text-focus-select, ng-model='newModule.moduleId').form-control.token-id-textarea
+ 
+    ul.list-group.key-list
+      li.list-group-item(ng-repeat='module in bluetoothModules track by $index').animate-repeat
+        a
+          i.fa.fa-bluetooth.fa-2x.fa-fw.key-list-icon
+          .key-list-details.selectable
+.key-list-name(ng-bind='module.name')
+            .key-list-subroute(ng-bind='module.subroute')
+            .key-list-localip(ng-bind='module.localip')
+            .key-list-port(ng-bind='module.port')
+ 
+button.btn.btn-xs.btn-danger-outline.pull-right.key-list-remove(ng-click='removeModule(module.name)')
+            i.fa.fa-trash-o
+            span(translate) Remove
