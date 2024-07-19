@@ -1,19 +1,20 @@
-module.exports = function BluetoothModulesCtrl($scope, BluetoothModuleService) {
+module.exports = function BluetoothModulesCtrl($scope, SettingsService) {
   $scope.bluetoothModules = [];
   $scope.newModule = {};
-  $scope.showGenerate = false; // Initially set to false
+  $scope.showGenerate = false; 
   $scope.showGenerated = false;
  
   function updateModules() {
-    BluetoothModuleService.getFullBluetoothModules()
-      .then(function(response) {
-        $scope.bluetoothModules = response.data.modules || [];
-      });
+    const modules = SettingsService.get('bluetoothModules');
+    $scope.bluetoothModules = modules ? modules : [];
   }
  
   $scope.removeModule = function(name) {
-    BluetoothModuleService.removeBluetoothModule(name)
-      .then(updateModules); // Ensure the list updates after removal
+    console.log("delete hoja bhai")
+    const modules = SettingsService.get('bluetoothModules') || [];
+    const updatedModules = modules.filter(module => module.name !== name);
+    SettingsService.set('bluetoothModules', updatedModules);
+    updateModules(); 
   };
  
   $scope.closeGenerated = function() {
@@ -24,12 +25,12 @@ module.exports = function BluetoothModulesCtrl($scope, BluetoothModuleService) {
  
   $scope.addModule = function() {
     if ($scope.bluetoothForm.$valid) {
-      BluetoothModuleService.addBluetoothModule($scope.newModule)
-        .then(function() {
-          $scope.newModule = {};
-          $scope.showGenerate = false;
-          updateModules();
-        });
+      const modules = SettingsService.get('bluetoothModules') || [];
+      modules.push($scope.newModule);
+      SettingsService.set('bluetoothModules', modules);
+      $scope.newModule = {};
+      $scope.showGenerate = false;
+      updateModules();
     }
   };
  
