@@ -42,10 +42,15 @@
         a
           i.fa.fa-bluetooth.fa-2x.fa-fw.key-list-icon
           .key-list-details.selectable
-.key-list-name(ng-bind='module.name')
+            .key-list-name(ng-bind='module.name')
             .key-list-subroute(ng-bind='module.subroute')
             .key-list-localip(ng-bind='module.localip')
             .key-list-port(ng-bind='module.port')
+            
+          button.btn.btn-xs.btn-danger-outline.pull-right.key-list-remove(ng-click='removeModule(module.name)')
+            i.fa.fa-trash-o
+            span(translate) Remove
+          
  
 button.btn.btn-xs.btn-danger-outline.pull-right.key-list-remove(ng-click='removeModule(module.name)')
             i.fa.fa-trash-o
