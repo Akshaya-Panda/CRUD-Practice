@@ -18,16 +18,16 @@
     div(ng-show='showGenerate')
       form(name='bluetoothForm', ng-submit='addModule()')
         .form-group
-          label(translate) Name
+          label(translate) Name*
           input(type='text', class='form-control', ng-model='newModule.name', required)
         .form-group
-          label(translate) Subroute
+          label(translate) Subroute*
           input(type='text', class='form-control', ng-model='newModule.subroute', required)
         .form-group
-          label(translate) Local IP
+          label(translate) Local IP*
           input(type='text', class='form-control', ng-model='newModule.localip', required)
         .form-group
-          label(translate) Port
+          label(translate) Port*
           input(type='text', class='form-control', ng-model='newModule.port', required)
         button.btn.btn-primary(type='submit') Add Module
  
