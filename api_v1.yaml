@@ -1,3 +1,210 @@
+swagger: "2.0"
+info:
+  version: "2.4.0"
+  title: Tech Mahindra Device Cloud
+  description: Control and manages real Smartphone devices from browser and restful apis
+  license:
+    name: Apache-2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+basePath: /api/v1
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+  - application/octet-stream
+produces:
+  - application/json
+tags:
+  
+  - name: automationByAPK
+    description: trigger test case automation by apk
+  - name: device-diagnostics
+    description: device diagnostic Operations
+  - name: hubctl
+    description: hub ctl Operations 
+  - name: user
+    description: User Operations
+  - name: users
+    description: Users Operations
+  - name: devices
+    description: Device Operations
+  - name: groups 
+    description: Groups Operations
+  - name: admin 
+    description: Privileged Operations
+paths:
+  /device-speed-test/{serial}:
+    x-swagger-router-controller: diagnosticTestCases
+    get:
+      summary: start device speed test 
+      description: The devices endpoint triggers speed test on given device
+      operationId: DeviceSpeedTest
+      tags:
+        - device-diagnostics
+      parameters:
+        - name: serial
+          in: path
+          description: Device identifier (serial)
+          required: true
+          type: string
+      responses:
+        "200":
+          description: process responce
+          schema:
+            $ref: "#/definitions/DeviceSpeedTest"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+  /startDeviceInfoEventLogs/{serial}:
+    x-swagger-router-controller: diagnosticTestCases
+    get:
+      summary: The Device Info Event Logs start endpoint 
+      description: The devices endpoint triggers start loggig
+      operationId: DeviceInfoLogsStartMessage
+      tags:
+        - device-diagnostics
+      parameters:
+        - name: eventType 
+          in: body
+          description: eventType to capture as a comma-separated list of event; note that by not providing this parameter it means all event are selected
+          required: false
+          schema:
+            $ref: "#/definitions/EventTypePayload"
+        - name: serial
+          in: path
+          description: Device identifier (serial)
+          required: true
+          type: string
+      responses:
+        "200":
+          description: process responce
+          schema:
+            $ref: "#/definitions/DeviceSpeedTest"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+  /stopDeviceInfoEventLogs/{serial}:
+    x-swagger-router-controller: diagnosticTestCases
+    get:
+      summary: The Device Info Event Logs stop endpoint  
+      description: The devices endpoint stop loggig and revert with logId
+      operationId: DeviceInfoLogsStopMessage
+      tags:
+        - device-diagnostics
+      parameters:
+        - name: serial
+          in: path
+          description: Device identifier (serial)
+          required: true
+          type: string
+      responses:
+        "200":
+          description: process responce
+          schema:
+            $ref: "#/definitions/DeviceSpeedTest"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+  /OnDemandAPkGetInfo/{serial}:
+    x-swagger-router-controller: diagnosticTestCases
+    get:
+      summary: start device diagnostics test case list
+      description: The devices endpoint triggers all active diagnostic test cases
+      operationId: OnDemandAPkGetInfo
+      tags:
+        - device-diagnostics
+      parameters:
+        - name: serial
+          in: path
+          description: Device identifier (serial)
+          required: true
+          type: string
+      responses:
+        "200":
+          description: process responce
+          schema:
+            $ref: "#/definitions/OnDemandAPkGetInfo"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+  /devices/{serial}/run-automation/{testCase}:
+    x-swagger-router-controller: automationByAPK
+    post:
+      summary: Start screen recording for device
+      description: Start screen recording for device
+      operationId: automationTrigger
+      tags:
+        - automationByAPK
+      parameters:
+        - name: serial
+          in: path
+          description: Device Serial
+          required: true
+          type: string
+        - name: testCase
+          in: path
+          description: test case to run
+          required: true
+          type: string
+        - name: onProcessDone
+          in: query
+          required: false
+          description: webhook url for sending responce
+          type: string
+        - name: input
+          in: body
+          schema:
+            type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+            properties:
+              message: 
+                type: string
+              success: 
+                type: boolean
+              serial:
+                type: string
+              user:
+                type: object
+              timestamp:
+                type: string
+                format: date-time
+        default:
+          description: Unexpected Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+      security:
+        - accessTokenAuth: []
+
+
 /users/{email}/accessTokens:
     x-swagger-router-controller: users
     post:
