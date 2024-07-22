@@ -1,0 +1,154 @@
+/users/{email}/accessTokens:
+    x-swagger-router-controller: users
+    post:
+      summary: Create an access token for a user
+      description: Creates an access token for a user.
+      operationId: createUserAccessToken
+      tags:
+        - admin
+      parameters:
+        - name: email
+          in: path 
+          description: User identifier (email) 
+          required: true
+          type: string
+        - name: title
+          in: query
+          description: Access token title
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Access token information
+          schema:
+            $ref: "#/definitions/UserAccessTokenResponse"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 404: Not Found => unknown user 
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+    get:
+      summary: Gets the access tokens of a user
+      description: Gets the access tokens of a user
+      operationId: getUserAccessTokensV2
+      tags:
+        - admin
+      parameters:
+        - name: email
+          in: path
+          description: User identifier (email)
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Access tokens information
+          schema:
+            $ref: "#/definitions/UserAccessTokensResponse"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 404: Not Found => unknown user 
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+    delete:
+      summary: Remove the access tokens of a user
+      description: Remove the access tokens of a user
+      operationId: deleteUserAccessTokens
+      tags:
+        - admin
+      parameters:
+        - name: email
+          in: path
+          description: User identifier (email)
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Access tokens removing is OK
+          schema:
+            $ref: "#/definitions/Response"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 404: Not Found => unknown user 
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+  /users/{email}/accessTokens/{id}:
+    x-swagger-router-controller: users
+    get:
+      summary: Gets an access token of a user
+      description: Gets an access token of a user
+      operationId: getUserAccessToken
+      tags:
+        - admin
+      parameters:
+        - name: email
+          in: path
+          description: User identifier (email)
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: Access token identifier 
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Access token information
+          schema:
+            $ref: "#/definitions/UserAccessTokenResponse"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 404: Not Found => unknown user or token 
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []
+    delete:
+      summary: Removes an access token of a user
+      description: Removes an access token of a user
+      operationId: deleteUserAccessToken
+      tags:
+        - admin
+      parameters:
+        - name: email
+          in: path
+          description: User identifier (email)
+          required: true
+          type: string
+        - name: id 
+          in: path
+          description: Access token identifier 
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Access token removing is OK
+          schema:
+            $ref: "#/definitions/Response"
+        default:
+          description: >
+            Unexpected Error:
+              * 401: Unauthorized => bad credentials
+              * 404: Not Found => unknown user or token 
+              * 500: Internal Server Error
+          schema:
+            $ref: "#/definitions/UnexpectedErrorResponse"
+      security:
+        - accessTokenAuth: []   
