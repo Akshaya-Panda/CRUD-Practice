@@ -1,3 +1,51 @@
+var util = require('util')
+
+var _ = require('lodash')
+var Promise = require('bluebird')
+var uuid = require('uuid')
+var adbkit = require('@devicefarmer/adbkit')
+var dbapi = require('../../../db/api')
+var logger = require('../../../util/logger')
+var datautil = require('../../../util/datautil')
+var deviceutil = require('../../../util/deviceutil')
+var wire = require('../../../wire')
+var wireutil = require('../../../wire/util')
+var wirerouter = require('../../../wire/router')
+
+const apiutil = require('../../../util/apiutil')
+const jwtutil = require('../../../util/jwtutil')
+
+var log = logger.createLogger('api:controllers:user')
+
+module.exports = {
+  getUser: getUser
+, getUserDevices: getUserDevices
+, addUserDevice: addUserDevice
+, getUserDeviceBySerial: getUserDeviceBySerial
+, deleteUserDeviceBySerial: deleteUserDeviceBySerial
+, remoteConnectUserDeviceBySerial: remoteConnectUserDeviceBySerial
+, remoteDisconnectUserDeviceBySerial: remoteDisconnectUserDeviceBySerial
+, getUserAccessTokens: getUserAccessTokens
+, addAdbPublicKey: addAdbPublicKey
+, addUserDeviceV2: addUserDevice
+, getAccessTokens: getAccessTokens
+, getAccessToken: getAccessToken
+, createAccessToken: createAccessToken
+, deleteAccessToken: deleteAccessToken
+, deleteAccessTokens: deleteAccessTokens
+, updateUserPrivilege: updateUserPrivilege
+}
+
+function getUser(req, res) {
+  // delete req.user.groups.lock
+  res.json({
+    success: true
+  , user: req.user
+  })
+}
+
+
+
 function getUserAccessTokens(req, res) {
   dbapi.loadAccessTokens(req.user.email)
     .then(function(cursor) {
