@@ -11,3 +11,14 @@ request(options, function (error, response) {
   if (error) throw new Error(error);
   console.log(response.body);
 });
+
+
+curl --location --request POST 'https://tm-reddev03.oasisofsolution.com/api/v1/rpAudioModules' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer c167643188b74933b324aff8fd7e47036e01d9c7894a45108daef410d64c028d' \
+--data-raw '{
+  "name":"raspberry3",
+  "subroute":"/127/",
+  "localip":"192.168.1.7",
+  "port":8082
+}'
