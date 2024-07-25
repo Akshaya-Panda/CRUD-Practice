@@ -1,25 +1,41 @@
-dbapi.removeUserAccessTokens = function (email) {
-  return db.run(r.table('accessTokens').getAll(email, {
-    index: 'email'
-  }).delete())
-}
+dbapi.loadModules = function() {
+  return db.run(r.table('rpAudioModules'));
+  }
+   
+dbapi.loadModule= function(id) {
+  return db.run(r.table('rpAudioModules').get(id));
+  }
+   
+dbapi.saveModule = function(module) {
+  return db.run(r.table('rpAudioModules').insert(module));
+  }
+  
+dbapi.updateModule = function(id,module) {
+  return db.run(r.table('rpAudioModules').get(id).update(module));
+  }
+   
+dbapi.removeModule = function(id) {
+  return db.run(r.table('rpAudioModules').get(id).delete());
+  }
 
-dbapi.removeUserAccessToken = function (email, title) {
-  return db.run(r.table('accessTokens').getAll(email, {
-    index: 'email'
-  }).filter({ title: title }).delete())
-}
-
-dbapi.removeAccessToken = function (id) {
-  return db.run(r.table('accessTokens').get(id).delete())
-}
-
-dbapi.loadAccessTokens = function (email) {
-  return db.run(r.table('accessTokens').getAll(email, {
-    index: 'email'
-  }))
-}
-
-dbapi.loadAccessToken = function (id) {
-  return db.run(r.table('accessTokens').get(id))
-}
+dbapi.insertRpAudioModule = function (module) {
+  const now = new Date();
+  const newModule = {
+    ...module,
+    createdBy: module.createdBy || 'unknown', 
+    createdOn: now,
+    updatedBy: module.updatedBy || 'unknown', 
+    updatedOn: now
+    };
+  return db.run(r.table('rpAudioModules').insert(newModule));
+  };
+   
+dbapi.updateRpAudioModule = function (id, module) {
+  const now = new Date();
+  const updatedModule = {
+    ...module,
+    updatedBy: module.updatedBy || 'unknown', 
+    updatedOn: now
+  };
+  return db.run(r.table('rpAudioModules').get(id).update(updatedModule));
+  };
