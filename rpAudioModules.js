@@ -1,4 +1,4 @@
-const util = require('util');
+const util = require('util'); 
 const _ = require('lodash');
 const Promise = require('bluebird');
 const uuid = require('uuid');
@@ -7,9 +7,10 @@ const logger = require('../../../util/logger');
 const wire = require('../../../wire');
 const wireutil = require('../../../wire/util');
 const apiutil = require('../../../util/apiutil');
+const request = require('request');
 
 
- 
+
 const log = logger.createLogger('api:controllers:rpAudioModules');
  
 module.exports = {
@@ -17,7 +18,8 @@ module.exports = {
   getModuleById:getModuleById,
   addModule:addModule,
   updateModule:updateModule,
-  deleteModule:deleteModule
+  deleteModule:deleteModule,
+  validateIpPort:validateIpPort
 };
  
 function getModules(req, res) {
@@ -50,32 +52,103 @@ const id = req.swagger.params.id.value;
     apiutil.internalError(res, 'Failed to get module: ', err.stack);
   });
 }
+
+function validateIpPort(localip, port, subroute) {
+  const url = `http://${localip}:${port}`;
+  const options = {
+    method: 'GET',
+    url: url,
+    headers: {}
+  };
+ 
+  return new Promise((resolve, reject) => {
+    request(options, (error, response) => {
+      if (error) {
+        return reject(new Error(`Failed to reach ${url}: ${error.message}`));
+      }
+      if (response.statusCode === 200) {
+        dbapi.checkFields(localip, port,subroute).then(isUnique => {
+          if (!isUnique) {
+            return reject(new Error('Local IP and port combination must be unique'));
+          }
+          resolve(true);
+        }).catch(reject);x  
+      } else {
+        reject(new Error('Invalid IP/Port combination'));
+      }
+    });
+  });
+}
+
+function validateModule(module) {
+  
+  const subroutePattern = /^\/[^/]*\/$/;
+ 
+  if (!subroutePattern.test(module.subroute)) {
+    throw new Error('Subroute should start with a forward slash and end with a backward slash');
+  }
+
+  return dbapi.checkFields(module.localip,module.port,module.subroute);
+    
+}
+
  function addModule(req, res) {
   const module = req.body;
   module.createdBy = req.user.email;
-  module.updatedBy = req.user.email;
+  module.updatedBy = req.user.email;  
  
-  dbapi.insertRpAudioModule(module).then(() => {
+  // dbapi.insertRpAudioModule(module).then(() => {
+  //   res.json({ success: true });
+  // }).catch(err => {
+  //   apiutil.internalError(res, 'Failed to add module: ', err.stack);
+  // });
+
+  validateModule(module).then(() => {
+    return dbapi.insertRpAudioModule(module);
+  }).then(() => {
     res.json({ success: true });
   }).catch(err => {
-    apiutil.internalError(res, 'Failed to add module: ', err.stack);
+    if (err.message === 'Subroute, localip, or port already exists') {
+      res.status(400).json({ success: false, message: err.message });
+    } else {
+      apiutil.internalError(res, 'Failed to add module: ', err.stack);
+    }
   });
 }
+
+
  
 function updateModule(req, res) {
   const module = req.body;
   const id = req.swagger.params.id.value;
   module.updatedBy = req.user.email;
  
-  dbapi.updateRpAudioModule(id, module).then(stats => {
+  // dbapi.updateRpAudioModule(id, module).then(stats => {
+  //   if (stats.replaced) {
+  //     res.json({ success: true });
+  //   } else {
+  //     res.status(404).json({ success: false, message: 'Module not found' });
+  //   }
+  // }).catch(err => {
+  //   apiutil.internalError(res, 'Failed to update module: ', err.stack);
+  // });
+
+  validateModule(module).then(() => {
+    return dbapi.updateRpAudioModule(id, module);
+  }).then(stats => {
     if (stats.replaced) {
       res.json({ success: true });
     } else {
       res.status(404).json({ success: false, message: 'Module not found' });
     }
   }).catch(err => {
-    apiutil.internalError(res, 'Failed to update module: ', err.stack);
+    if (err.message === 'Subroute, localip, or port already exists') {
+      res.status(400).json({ success: false, message: err.message });
+    } else {
+      apiutil.internalError(res, 'Failed to update module: ', err.stack);
+    }
   });
+
 }
  
 function deleteModule(req, res) {
