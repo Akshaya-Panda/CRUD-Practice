@@ -21,46 +21,44 @@
           label(translate) Module Name*
           input(type='text', class='form-control', ng-model='newModule.name', required)
           div(ng-show='bluetoothForm.name.$dirty && bluetoothForm.name.$invalid' class='help-block') Please fill in the name.
-
+ 
         .form-group(ng-class="{'has-error':bluetoothForm.subroute.$dirty && bluetoothForm.subroute.$invalid}")
-          label(translate) domain sub-route*
+          label(translate) Domain Sub-route*
           input(type='text', class='form-control', ng-model='newModule.subroute', required)
           div(ng-show='bluetoothForm.subroute.$dirty && bluetoothForm.subroute.$invalid' class='help-block') Please fill in the subroute.
-
+ 
         .form-group(ng-class="{'has-error':bluetoothForm.localip.$dirty && bluetoothForm.localip.$invalid}")
           label(translate) Local IP*
           input(type='text', class='form-control', ng-model='newModule.localip', required)
           div(ng-show='bluetoothForm.localip.$dirty && bluetoothForm.localip.$invalid' class='help-block') Please fill in the localip.
-
+ 
         .form-group(ng-class="{'has-error':bluetoothForm.port.$dirty && bluetoothForm.port.$invalid}")
           label(translate) Port*
-          input(type='text', class='form-control', ng-model='newModule.port', required)
+          input(type='number', class='form-control', ng-model='newModule.port', required)
           div(ng-show='bluetoothForm.port.$dirty && bluetoothForm.port.$invalid' class='help-block') Please fill in the port.
-        button.btn.btn-primary(type='submit',ng-disabled='bluetoothForm.$invalid') {{editModule ? 'Verify Module' : 'Verify Module'}}
+ 
+        button.btn.btn-primary(type='submit', ng-disabled='bluetoothForm.$invalid') {{editModule ? 'Verify Module' : 'Verify Module'}}
  
     div(ng-show='showGenerated')
       .alert.alert-info.selectable
         button.btn.pull-right.btn-primary.btn-sm(ng-click='closeGenerated()')
-          i.fa.fa-check.fa-fw
+          i.fa.fa-check.fa-fw 
         textarea(readonly, rows='2', text-focus-select, ng-model='newModule.moduleId').form-control.token-id-textarea
  
     ul.list-group.key-list
-      li.list-group-item(ng-repeat='module in bluetoothModules track by $index').animate-repeat
+      li.list-group-item(ng-repeat='module in bluetoothModules track by $index').anime-repeat
         a
           i.fa.fa-bluetooth.fa-2x.fa-fw.key-list-icon
           .key-list-details.selectable
             .key-list-name(ng-bind='module.name')
             .key-list-subroute(ng-bind='module.subroute')
-            
-
+            //- .key-list-localip(ng-bind='module.localip')
+            //- .key-list-port(ng-bind='module.port')
+ 
           button.btn.btn-xs.btn-primary-outline.pull-right.key-list-edit(ng-click='editModuleDetails(module)')
             i.fa.fa-pencil
             span(translate) Edit
-
-            
-          button.btn.btn-xs.btn-danger-outline.pull-right.key-list-remove(ng-click='removeModule(module.name)')
+ 
+          button.btn.btn-xs.btn-danger-outline.pull-right.key-list-remove(ng-click='removeModule(module.id)')
             i.fa.fa-trash-o
             span(translate) Remove
-          
- 
-
