@@ -22,3 +22,8 @@ curl --location --request POST 'https://tm-reddev03.oasisofsolution.com/api/v1/r
   "localip":"192.168.1.7",
   "port":8082
 }'
+
+#uniqid 
+    location /audio/ {
+      proxy_pass http://10.147.22.3:3001/;
+    }
