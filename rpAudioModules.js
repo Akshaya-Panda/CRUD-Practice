@@ -48,7 +48,7 @@ const id = req.swagger.params.id.value;
 }
  
 function validateIpPort(localip, port, subroute) {
-  const url = `http://${localip}:${port}`;
+  const url = `https://tm-reddev03.oasisofsolution.com/api/v1/rpAudioModules/${localip}:${port}`;
   const options = {
     method: 'GET',
     url: url,
