@@ -1,0 +1,11 @@
+#9e5ab7f2-f27b-4db0-948b-56b32f139fb3
+        location /add_module1/ {
+          proxy_pass http://172.168.19.2:2599/;
+        }
+      
+
+#0ed50651-5eda-48a4-9d39-50f9669cc623
+        location /add_module3/ {
+          proxy_pass http://172.168.1.19:2799/;
+        }
+      
