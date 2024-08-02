@@ -359,3 +359,21 @@ paths:
             $ref: "#/definitions/UnexpectedErrorResponse"
       security:
         - accessTokenAuth: []   
+/rpAudioModules/{id}:
+    get:
+      x-swagger-router-controller: rpAudioModules
+      operationId: getModuleById
+      summary: Get a specific audio module by ID
+      tags:
+        - rpAudioModules
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the module to retrieve
+          required: true
+          type: string
+      responses:
+        200:
+          description: The audio module
+          schema:
+            $ref: "#/definitions/AudioModule"
