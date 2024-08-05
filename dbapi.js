@@ -20,13 +20,22 @@ dbapi.removeModule = function(id) {
 
   dbapi.checkFields = function(localip, port, subroute) {
     return db.run(
-        r.table('rpAudioModules').filter({
-          localip: localip,
-          port: port,
-          subroute: subroute
-        }).count().eq(0)
-      ).then(count => count > 0);
-    };
+        r.table('rpAudioModules').filter(function(module) {
+          return module('localip').eq(localip)
+            .and(module('port').eq(port))
+            .or(module('subroute').eq(subroute));
+        })
+        .count()
+    ).then(count => count === 0);
+  };
+
+
+  dbapi.validateSubroute = function(subroute) {
+    const subroutePattern = /^\/.*\/$/;
+    if (!subroutePattern.test(subroute)) {
+      throw new Error('Subroute must start and end with a forward slash');
+    }
+  };
      
     // Ensure that no duplicate records are inserted by checking uniqueness
     dbapi.insertRpAudioModule = function (module) {
@@ -39,6 +48,8 @@ dbapi.removeModule = function(id) {
         updatedOn: now
       };
       
+      dbapi.validateSubroute(newModule.subroute);
+
       // Check for uniqueness before inserting
       return dbapi.checkFields(newModule.localip, newModule.port, newModule.subroute)
         .then(isUnique => {
@@ -57,6 +68,8 @@ dbapi.removeModule = function(id) {
         updatedBy: module.updatedBy || 'unknown',
         updatedOn: now
       };
+
+      dbapi.validateSubroute(updatedModule.subroute);
       
       // Check for uniqueness before updating
       return dbapi.loadModule(id).then(existingModule => {
@@ -66,9 +79,36 @@ dbapi.removeModule = function(id) {
         return dbapi.checkFields(updatedModule.localip, updatedModule.port, updatedModule.subroute)
           .then(isUnique => {
             if (!isUnique) {
-              throw new Error('Subroute, localip, or port already exists');
+              throw new Error('Subroute, localip, or port already exists');4
             }
     return db.run(r.table('rpAudioModules').get(id).update(updatedModule));
           });
       });
     };
+
+    
+  function generateConfigEntry(module) {
+    return `#${module.id}
+        location ${module.subroute} {
+          proxy_pass http://${module.localip}:${module.port}/;
+        }
+      `;
+    }
+      
+    
+    function writeConfigFile(configEntries) {
+      const configContent = configEntries.join('\n\n');
+      fs.writeFileSync(file_path, configContent, 'utf8');
+    }
+      
+    
+    dbapi.updateNginxConfig=function() {
+      
+      return dbapi.loadModules().then(modules => {
+        console.log(modules._responses[0]['r'],"qwertyuio")
+        const configEntries = modules._responses[0]['r'].map(generateConfigEntry);
+        writeConfigFile(configEntries);
+      }).catch(err => {
+        console.error('Failed to update Nginx config:', err);
+      });
+    }
