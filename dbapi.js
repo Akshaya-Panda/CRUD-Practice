@@ -1,3 +1,6 @@
+const file_path = '/etc/nginx/conf.d/audio.rpconf'
+const fs = require('fs')
+
 dbapi.loadModules = function() {
   return db.run(r.table('rpAudioModules'));
   }
