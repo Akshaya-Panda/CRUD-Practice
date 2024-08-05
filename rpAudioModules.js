@@ -16,7 +16,8 @@ module.exports = {
   addModule: addModule,
   updateModule: updateModule,
   deleteModule: deleteModule,
-  validateIpPort: validateIpPort
+  validateIpPort: validateIpPort,
+  validateModule: validateModule
 };
 function getModules(req, res) {
   dbapi.loadModules().then(modules => {
@@ -48,7 +49,7 @@ const id = req.swagger.params.id.value;
 }
  
 function validateIpPort(localip, port, subroute) {
-  const url = `https://tm-reddemo11.oasisofsolution.com/api/v1/rpAudioModules/${localip}:${port}`;
+  const url = `http://${localip}:${port}`;
   const options = {
     method: 'GET',
     url: url,
@@ -87,9 +88,13 @@ function addModule(req, res) {
   const module = req.body;
 module.createdBy = req.user.email;
 module.updatedBy = req.user.email;
-  validateModule(module).then(() => {
+  validateModule(module)
+  .then(() => { validateIpPort(module.localip,module.port,module.subroute)})
+  .then(()=>{
     return dbapi.insertRpAudioModule(module);
   }).then(() => {
+    return dbapi.updateNginxConfig();
+  }).then(()=>{
     res.json({ success: true });
   }).catch(err => {
     if (err.message === 'Subroute, localip, or port already exists') {
@@ -105,10 +110,15 @@ function updateModule(req, res) {
 const id = req.swagger.params.id.value;
 module.updatedBy = req.user.email;
  
-  validateModule(module).then(() => {
+  validateModule(module)
+  .then(() => { validateIpPort(module.localip,module.port,module.subroute)})
+  .then(()=>
+    {
     return dbapi.updateRpAudioModule(id, module);
   }).then(stats => {
     if (stats.replaced) {
+	console.log(stats,"qwertytredwrtyutre")
+
       res.json({ success: true });
     } else {
       res.status(404).json({ success: false, message: 'Module not found' });
@@ -125,7 +135,9 @@ module.updatedBy = req.user.email;
 function deleteModule(req, res) {
 const id = req.swagger.params.id.value;
   dbapi.removeModule(id).then(stats => {
+	console.log(stats,"hgfdsdfghjhgfdsfgh")
     if (stats.deleted) {
+      return dbapi.updateNginxConfig();
       res.json({ success: true });
     } else {
       res.status(404).json({ success: false, message: 'Module not found' });
