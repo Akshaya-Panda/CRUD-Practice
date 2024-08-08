@@ -19,7 +19,7 @@ function generateConfigEntry(module) {
         }
  
         location ${module.subroute} {
-        proxy_pass http://${module.localip}:${module.websocket}/;
+        proxy_pass http://${module.localip}:${module.websocketport}/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
