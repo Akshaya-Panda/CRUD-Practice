@@ -14,11 +14,11 @@ function generateConfigEntry(module) {
         proxy_pass http://${module.localip}:${module.moduleport}/;
         }
 
-        location ${module.subroute} {
-	    proxy_pass http://${module.localip}:${module.managerport}/
+        location ${module.subroute}manager/ {
+	    proxy_pass http://${module.localip}:${module.managerport}/;
         }
  
-        location ${module.subroute} {
+        location ${module.subroute}websocket/ {
         proxy_pass http://${module.localip}:${module.websocketport}/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -28,7 +28,7 @@ function generateConfigEntry(module) {
         }
             `;
 }
-
+ 
 function getConfigFilePath(module) {
     const filename = module.subroute.replace(/\//g, '') + '.rpconf';
     return path.join(NGINX_DIR, filename);
@@ -73,8 +73,8 @@ async function reloadNginx() {
     }
 }
  
-async function checkIpPortAvailability(localip, moduleport) {
-    const url = `http://${localip}:${moduleport}`;
+async function checkIpPortAvailability(localip, port) {
+    const url = `http://${localip}:${port}`;
     try {
         await request.get(url, { timeout: 5000 });
         return true;
@@ -83,7 +83,7 @@ async function checkIpPortAvailability(localip, moduleport) {
         return false;
     }
 }
- 
+
 async function readExistingConfigs() {
     return new Promise((resolve, reject) => {
         glob(`${NGINX_DIR}/*.rpconf`, (err, files) => {
@@ -110,22 +110,27 @@ async function readExistingConfigs() {
         });
     });
 }
-
+ 
 async function checkUniqueness(newModule) {
     const existingModules = await readExistingConfigs();
  
     return !existingModules.some(module =>
-        (module.localip === newModule.localip && module.moduleport === newModule.moduleport) ||
-        module.subroute === newModule.subroute
+        (module.localip === newModule.localip && (module.moduleport === newModule.moduleport ||
+        module.managerport === newModule.managerport ||
+        module.websocketport === newModule.websocketport ||
+        module.subroute === newModule.subroute))
     );
 }
  
 async function validateAndUpdateNginxConfig(newModule) {
     if (newModule) {
-        const isAvailable = await checkIpPortAvailability(newModule.localip, newModule.port);
+        const modulePorts = [newModule.moduleport, newModule.managerport, newModule.websocketport]
+        for(const port of modulePorts){
+        const isAvailable = await checkIpPortAvailability(newModule.localip,port);
         if (!isAvailable) {
             throw new Error('Failed to reach the specified IP and Port');
         }
+    }
  
         if (!await checkUniqueness(newModule)) {
             throw new Error('Local IP, Port or Subroute already exists');
@@ -150,10 +155,13 @@ async function validateAndUpdateNginxConfig(newModule) {
  
 async function validateAndUpdateConfigForModule(module , newModule) {
     if (newModule) {
-        const isAvailable = await checkIpPortAvailability(newModule.localip, newModule.moduleport);
+        const modulePorts = [newModule.moduleport, newModule.managerport, newModule.websocketport]
+        for(const port of modulePorts){
+        const isAvailable = await checkIpPortAvailability(newModule.localip,port);
         if (!isAvailable) {
             throw new Error('Failed to reach the specified IP and Port');
         }
+    }
  
         if (!await checkUniqueness(newModule)) {
             throw new Error('Local IP, Port or Subroute already exists');
