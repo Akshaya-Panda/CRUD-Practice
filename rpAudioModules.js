@@ -104,31 +104,27 @@ module.updatedBy = req.user.email;
 //       apiutil.internalError(res, 'Failed to add module: ', err.stack);
 //     }
 //   });
-  try {
-    validateModule(module);
-    const allModules = await dbapi.loadModules();
-    //console.log(allModules)
-    if( nginxutil.validateAndUpdateNginxConfig(allModules, module)){
-    // if nginx update is successful add to database.
-     dbapi.insertRpAudioModule(module);
-    
-    res.json({success: true, module});
-    }
-  }catch(err){
-    if(err.message === 'Local IP , Port or Subroute already exists' ||
-       err.message === "Failed to reach the specified IP and Port" ||
-       err.message === "Nginx configuration test failed" ||
-       err.message === "Failed to Reload Nginx"
-    ) {
-      res.status(400).json({ success:false, message: err.message});
-    }else {
-        apiutil.internalError(res, 'Failed to add module: ', err.stack);
-      }
-
+try {
+  validateModule(module);
+  console.log(module,"jhgfdghjkhgfdxjkhgfcvbnnb ")
+   await nginxutil.validateAndUpdateNginxConfig(module)
+      await dbapi.insertRpAudioModule(module);
+      res.json({ success: true, module });
+  
+} catch (err) {
+  if (['Local IP, Port or Subroute already exists', 
+    'Failed to reach the specified IP and Port', 
+    'Nginx configuration test failed', 
+    'Failed to Reload Nginx'].
+    includes(err.message)) {
+      res.status(400).json({ success: false, message: err.message });
+  } else {
+      apiutil.internalError(res, 'Failed to add module: ', err.stack);
   }
+}
  }
 async function updateModule(req, res) {
-  const module = req.body; 
+const module = req.body; 
 const id = req.swagger.params.id.value;
 module.updatedBy = req.user.email;
  
@@ -152,37 +148,30 @@ module.updatedBy = req.user.email;
   //     apiutil.internalError(res, 'Failed to update module: ', err.stack);
   //   }
   // });
-  try{
+  try {
     validateModule(module);
+    console.log(module,"qwertyuio");
     const existingModule = await dbapi.loadModule(id);
-    if(!existingModule){
-      return res.status(404).jsnon({success:false, message:"Module not found"})
+    console.log(existingModule,"asdfghjfghj");
+    if (!existingModule) {
+        return res.status(404).json({ success: false, message: 'Module not found' });
     }
-    const allModules = await dbapi.loadModules();
-    const otherModules = allModules._responses[0]['r']     .filter(m => m.id !== id);
-     if(nginxutil.validateAndUpdateNginxConfig(otherModules,module)){
-      const updateModule = await dbapi.updateRpAudioModule(id,module);
-      res.json({success:true, module:updateModule}) 
-     }
+    await nginxutil.validateAndUpdateConfigForModule(existingModule , module);
+        const updatedModule = await dbapi.updateRpAudioModule(id, module);
+        res.json({ success: true, module: updatedModule });
+    
+} catch (err) {
+    if (['Local IP, Port or Subroute already exists', 
+      'Failed to reach the specified IP and Port', 
+      'Nginx configuration test failed', 
+      'Failed to Reload Nginx']
+      .includes(err.message)) {
+        res.status(400).json({ success: false, message: err.message });
+    } else {
+        apiutil.internalError(res, 'Failed to update module: ', err.stack);
     }
-     catch(err){
-      if(err.message === 'Local IP , Port or Subroute already exists' ||
-        err.message === "Failed to reach the specified IP and Port" ||
-        err.message === "Nginx configuration test failed" ||
-        err.message === "Failed to Reload Nginx"
-     ) {
-       res.status(400).json({ success:false, message: err.message});
-     }else {
-         apiutil.internalError(res, 'Failed to update module: ', err.stack);
-       }
- 
-
-
-     }
-
-  }
-
-
+}
+}
  
 async function deleteModule(req, res) {
 const id = req.swagger.params.id.value;
@@ -198,23 +187,15 @@ const id = req.swagger.params.id.value;
   //   apiutil.internalError(res, 'Failed to delete module: ', err.stack);
   // });
 
-  try{
+  try {
     const moduleToDelete = await dbapi.loadModule(id);
-    if(!moduleToDelete){
-      return res.status(404).jsnon({success:false, message:"Module not found"})
+    if (!moduleToDelete) {
+        return res.status(404).json({ success: false, message: 'Module not found' });
     }
-    const allModules = await dbapi.loadModules();
-    console.log(allModules._responses[0]['r']);
-    const updatedModules = allModules._responses[0]['r'].filter(m => m.id !== id);
-    
-    // For delete, we pass null as the new module
-    await nginxutil.validateAndUpdateNginxConfig(updatedModules, null);
-    
-    // If Nginx update is successful, remove from database
+    await nginxutil.deleteModuleConfig(moduleToDelete);
     await dbapi.removeModule(id);
-    
     res.json({ success: true, message: 'Module deleted successfully' });
-  } catch (err) {
+} catch (err) {
     apiutil.internalError(res, 'Failed to delete module: ', err.stack);
-  }
+}
 }
