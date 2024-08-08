@@ -9,16 +9,17 @@ const glob = require('glob');
 const NGINX_DIR = '/etc/nginx/conf.d';
  
 function generateConfigEntry(module) {
+    
     return `
         location ${module.subroute} {
         proxy_pass http://${module.localip}:${module.moduleport}/;
         }
 
-        location ${module.subroute}manager/ {
+        location ${module.subroute.replace(/\/$/,"")}-manager/ {
 	    proxy_pass http://${module.localip}:${module.managerport}/;
         }
  
-        location ${module.subroute}websocket/ {
+        location ${module.subroute.replace(/\/$/,"")}-websocket/ {
         proxy_pass http://${module.localip}:${module.websocketport}/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
