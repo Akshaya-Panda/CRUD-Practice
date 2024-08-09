@@ -59,7 +59,8 @@
               div
                 input(type="checkbox")
                 span Radio Logs(QXDM)
-              button.btn.btn-primary-outline.btn-sm Customize
+              button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()'
+              ) Customize
             li 
               div
                 input(type="checkbox")
@@ -103,43 +104,43 @@
   .widget-content.padded.pt-0(ng-if="allPending")
     i.fa.fa-spinner.fa-spin.fa-fw
     
-  
-.custom-sidepanel 
-  .sidepanel-header
-    h5.d-flex.justify-space-between
-      span
-        i.fa.fa-file
-        | Logscat Logs
-      button.btn-sm.btn-link
-        i.fa.fa-times
-  .padded
-    .row 
-      .col-sm-6
-        .form-group
-          label Logcat Level 
-          input.form-control(type="text")
-        .form-group
-          label PID
-          input.form-control(type="text")
-      .col-sm-6
-        .form-group
-          label Time 
-          input.form-control(type="text")
-        .form-group
-          label TID
-          input.form-control(type="text")
-      .col-sm-12
-        .form-group
-          label Tag 
-          input.form-control(type="text")
-        .form-group
-          label Text 
-          input.form-control(type="text")
-    .text-center 
-      button.btn.btn-sm.btn-secondary-outline
-        i.fa.fa-repeat
-        span clear
-      button.btn.btn-primary.btn-sm
-        i.fa.fa-save 
-        span Start
-          
+div(ng-class="{'show':showLogscatPanel,'hide':!showLogscatpanel}")
+  .custom-sidepanel 
+    .sidepanel-header
+      h5.d-flex.justify-space-between
+        span
+          i.fa.fa-file
+          | Logscat Logs
+        button.btn-sm.btn-link(ng-click='closeLogscatPanel()')
+          i.fa.fa-times
+    .padded
+      .row 
+        .col-sm-6
+          .form-group
+            label Logcat Level 
+            input.form-control(type="text")
+          .form-group
+            label PID
+            input.form-control(type="text")
+        .col-sm-6
+          .form-group
+            label Time 
+            input.form-control(type="text")
+          .form-group
+            label TID
+            input.form-control(type="text")
+        .col-sm-12
+          .form-group
+            label Tag 
+            input.form-control(type="text")
+          .form-group
+            label Text 
+            input.form-control(type="text")
+      .text-center 
+        button.btn.btn-sm.btn-secondary-outline
+          i.fa.fa-repeat
+          span clear
+        button.btn.btn-primary.btn-sm
+          i.fa.fa-save 
+          span Start
+            
