@@ -1,0 +1,138 @@
+.indiviual-test {
+  display: inline-block;
+  outline: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px 0 rgb(213 217 217 / 50%);
+  background: #fff;
+  border: 1px solid #d5d9d9;
+  font-size: 13px;
+  text-align: center;
+  font-weight: 400;
+  color: #0f1111;
+  width: 100%;
+}
+
+.indiviual-test:hover {
+  background-color: #f7fafa;
+  border-color: #d5d9d9;
+}
+
+.status-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.indiviual-test:disabled {
+  cursor: not-allowed;
+  background: #d7d7d7;
+  color: white;
+}
+
+.overlay {
+  inset: -1px;
+  background-color: rgba(0, 0, 0, 0.5);
+  position: absolute;
+  border-radius: 5px;
+  display: none;
+}
+
+
+
+.initial-testcase:hover .overlay,
+.completed-testcase:hover .overlay,
+.error-testcase:hover .overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.small-text {
+  font-size: 12px
+}
+
+.bugreport-status {
+  max-width: 160px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.overlay-button {
+  background-color: #7f7f7f ;
+  outline: none;
+  border: 1px solid white;
+  color: white;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.4s all ease;
+  padding: 3px 10px;
+  gap: 5px;
+}
+
+.overlay-button:hover {
+  background-color: white;
+  color: black;
+}
+
+.session-checkbox li {
+  border-bottom: 1px solid #eee;
+  padding: 8px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+}
+.session-checkbox li input[type="checkbox"]{
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+}
+.btn-primary-outline{
+  border: 1px solid #167ffc;
+}
+
+.padded{
+  display: inline-block;
+  width: 100%;
+}
+.screenshot-count{
+  background: #f7f7f7;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  text-align: center;
+  margin-left: 1rem;
+  color: #167FFC;
+}
+.screenbox{
+  float: left;
+  margin: 15px;
+}
+.screenbox img {
+  height: 300px;
+}
+.gray-box{
+  background: #eee;
+  padding: 15px;
+}
+.custom-sidepanel{
+  position: fixed;
+  right: 0;
+  top: 78px;
+  width: 600px;
+  background: #fff;
+  height: 100%;
+  box-shadow: 0 0 10px #ddd;
+}
+.custom-sidepanel h5{
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+.custom-sidepanel h5 i{
+  color: #e31937;
+  margin-right: 10px;
+}
