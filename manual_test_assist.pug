@@ -49,26 +49,37 @@
           ul.session-checkbox  
             li
               div
-                input(type="checkbox")
+                input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton()")
                 span Logcat Logs
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+                span Customize
             li 
               div
-                input(type="checkbox")
+                input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton()")
                 span Bugreport
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+                span Customize
+              
             li
               div
-                input(type="checkbox")
+                input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton()")
                 span Radio Logs(QXDM)
-              button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()'
-              ) Customize
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+                span Customize
+              //- button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()') Customize
             li 
               div
-                input(type="checkbox")
+                input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton()")
                 span Video
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+                span Customize
             li 
               div
-                input(type="checkbox")
+                input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton()")
                 span Audio
+              //if showCustomizeButton
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+                span Customize
       <hr>
       .d-flex.justify-space-between
         button.btn.btn-primary.btn-sm
@@ -104,7 +115,7 @@
   .widget-content.padded.pt-0(ng-if="allPending")
     i.fa.fa-spinner.fa-spin.fa-fw
     
-div(ng-class="{'show':showLogscatPanel,'hide':!showLogscatpanel}")
+div(ng-class="{'show':showLogscatPanel,'hide':!showLogscatPanel}" )
   .custom-sidepanel 
     .sidepanel-header
       h5.d-flex.justify-space-between
