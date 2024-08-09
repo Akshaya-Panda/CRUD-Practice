@@ -1,0 +1,145 @@
+
+.row.stf-info.selectable(ng-controller='ManualTestAssistCtrl')
+  
+  .widget-container.fluid-height
+    .heading
+      span
+        stacked-icon(icon='fa-clock-o')
+        span(translate) New Session
+        button.btn.pull-right.btn-sm.btn-primary-outline
+          i.fa.fa-history 
+          span History
+        button.btn.pull-right.btn-primary.btn-sm
+          i.fa.fa-play 
+          span Start
+        button.btn.pull-right.btn-sm.btn-secondary-outline
+          i.fa.fa-repeat
+          span clear
+        
+          
+    .padded
+      .row 
+        .col-sm-6
+          .form-group
+            label Session Name 
+            input.form-control(type="text")
+          .form-group
+            label Session Description 
+            textarea.form-control
+          .form-group
+            label Pair more device
+            input.form-control(type="text")
+          
+          .gray-box
+            ul.session-checkbox  
+              li
+                div
+                  input(type="checkbox")
+                  span Upload original logs to FTP
+              li 
+                div
+                  input(type="checkbox")
+                  span Process and upload logs to DB
+              li
+                div
+                  input(type="checkbox")
+                  span Discard Logs
+
+        .col-sm-6
+          ul.session-checkbox  
+            li
+              div
+                input(type="checkbox")
+                span Logcat Logs
+            li 
+              div
+                input(type="checkbox")
+                span Bugreport
+            li
+              div
+                input(type="checkbox")
+                span Radio Logs(QXDM)
+              button.btn.btn-primary-outline.btn-sm Customize
+            li 
+              div
+                input(type="checkbox")
+                span Video
+            li 
+              div
+                input(type="checkbox")
+                span Audio
+      <hr>
+      .d-flex.justify-space-between
+        button.btn.btn-primary.btn-sm
+          i.fa.fa-camera 
+          span Capture Screenshot
+        div.d-flex.align-items-center
+          strong Total Screenshot 
+          span.screenshot-count 7
+        //- <img alt="Google" height="92" src="/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png" style="padding:28px 0 14px" width="272" id="hplogo">
+
+      .screenshot-container 
+        div.screenbox
+          p.m-0.text-right
+            i.fa.fa-clock-o
+            span 3:40 PM 
+          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
+        div.screenbox
+          p.m-0.text-right
+            i.fa.fa-clock-o
+            span 3:40 PM 
+          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
+        div.screenbox
+          p.m-0.text-right
+            i.fa.fa-clock-o
+            span 3:40 PM 
+          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
+        div.screenbox
+          p.m-0.text-right
+            i.fa.fa-clock-o
+            span 3:40 PM 
+          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
+      
+  .widget-content.padded.pt-0(ng-if="allPending")
+    i.fa.fa-spinner.fa-spin.fa-fw
+    
+  
+.custom-sidepanel 
+  .sidepanel-header
+    h5.d-flex.justify-space-between
+      span
+        i.fa.fa-file
+        | Logscat Logs
+      button.btn-sm.btn-link
+        i.fa.fa-times
+  .padded
+    .row 
+      .col-sm-6
+        .form-group
+          label Logcat Level 
+          input.form-control(type="text")
+        .form-group
+          label PID
+          input.form-control(type="text")
+      .col-sm-6
+        .form-group
+          label Time 
+          input.form-control(type="text")
+        .form-group
+          label TID
+          input.form-control(type="text")
+      .col-sm-12
+        .form-group
+          label Tag 
+          input.form-control(type="text")
+        .form-group
+          label Text 
+          input.form-control(type="text")
+    .text-center 
+      button.btn.btn-sm.btn-secondary-outline
+        i.fa.fa-repeat
+        span clear
+      button.btn.btn-primary.btn-sm
+        i.fa.fa-save 
+        span Start
+          
