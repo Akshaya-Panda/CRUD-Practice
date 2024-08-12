@@ -55,34 +55,34 @@
                 input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton('logcatLogs')")
                 span Logcat Logs
               
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.logcatLogs' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.logcatLogs' ng-click='openLogscatPanel("logcatLogs")')
                 span Customize
             li 
               div
                 input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')")
                 span Bugreport
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.bugreport' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.bugreport' ng-click='openLogscatPanel("bugreport")')
                 span Customize
               
             li
               div
                 input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton('radioLogs')")
                 span Radio Logs(QXDM)
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.radioLogs' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.radioLogs' ng-click='openLogscatPanel("radioLogs")')
                 span Customize
               //- button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()') Customize
             li 
               div
                 input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton('video')")
                 span Video
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.video' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.video' ng-click='openLogscatPanel("video")')
                 span Customize
             li 
               div
                 input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton('audio')")
                 span Audio
               //if showCustomizeButton
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.audio' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.audio' ng-click='openLogscatPanel("audio")')
                 span Customize
       <hr>
       .d-flex.justify-space-between
@@ -126,37 +126,57 @@
         h5.d-flex.justify-space-between
           span
             i.fa.fa-file
-            | Logscat Logs
+            |Logs
           button.btn-sm.btn-link(ng-click='closeLogscatPanel()')
             i.fa.fa-times
       .padded
         .row 
-          .col-sm-6
-            .form-group
-              label Logcat Level 
-              input.form-control(type="text")
-            .form-group
-              label PID
-              input.form-control(type="text")
-          .col-sm-6
-            .form-group
-              label Time 
-              input.form-control(type="text")
-            .form-group
-              label TID
-              input.form-control(type="text")
-          .col-sm-12
-            .form-group
-              label Tag 
-              input.form-control(type="text")
-            .form-group
-              label Text 
-              input.form-control(type="text")
+        div(ng-if="logtype === 'radioLogs'")
+          .form-group
+            label Mask File 
+            select.form-control(ng-model='maskFile')
+              option(value='mask1') Sandstorm.dmc
+              option(value='mask2') Mask 2
+          .form-group 
+            label Packets 
+            input.form-control(type="text" ng-model="packets")
+        
+        div(ng-if="logtype === 'video'")
+          .form-group 
+            label Frame Rate
+            input.form-control(type="text" ng-model="frameRate")
+        
+          
+          //- .col-sm-6
+          //-   .form-group
+          //-     label Logcat Level 
+          //-     input.form-control(type="text")
+          //-   .form-group
+          //-     label PID
+          //-     input.form-control(type="text")
+          //- .col-sm-6
+          //-   .form-group
+          //-     label Time 
+          //-     input.form-control(type="text")
+          //-   .form-group
+          //-     label TID
+          //-     input.form-control(type="text")
+          //- .col-sm-12
+          //-   .form-group
+          //-     label Tag 
+          //-     input.form-control(type="text")
+          //-   .form-group
+          //-     label Text 
+          //-     input.form-control(type="text")
+              
+        
+          
+            
         .text-center 
           button.btn.btn-sm.btn-secondary-outline
             i.fa.fa-repeat
             span clear
           button.btn.btn-primary.btn-sm
             i.fa.fa-save 
-            span Start
+            span Save
               
