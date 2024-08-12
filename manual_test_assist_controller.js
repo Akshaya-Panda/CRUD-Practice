@@ -39,6 +39,13 @@ module.exports = function ManualTestAssistCtrl(
     audio: false,
   };
   $scope.showLogscatPanel = false;
+  $scope.isRunning = false
+  $scope.logtype='';
+  $scope.maskFile='';
+  $scope.packets='';
+  $scope.frameRate='';
+  $scope.showCustomizeButton = {};
+  $scope.isViewing = false;
   
   $scope.$watch('session.testCaseID', function (newValue) {
     $scope.testCaseID = newValue;
@@ -48,9 +55,12 @@ module.exports = function ManualTestAssistCtrl(
     console.log("asdfgh")
     $scope.showCustomizeButton[checkboxKey] = $scope.checkboxes[checkboxKey];
   };
+  
+  
  
-  $scope.openLogscatPanel = function () {
+  $scope.openLogscatPanel = function (type) {
     console.log("wqerdfgh")
+    $scope.logtype = type;
     $scope.showLogscatPanel = true;
     console.log("DFGHJGFGH",$scope.showLogscatPanel)
     
@@ -58,7 +68,27 @@ module.exports = function ManualTestAssistCtrl(
  
   $scope.closeLogscatPanel = function () {
     $scope.showLogscatPanel = false;
+    $scope.logtype='';
+    $scope.maskFile='';
+    $scope.packets='';
+    $scope.frameRate='';
     console.log("close hoja bhai")
+  };
+  
+  $scope.toggleStartStop = function() {
+    $scope.isRunning = !$scope.isRunning;
+    $scope.isViewing = true;
+    // When stopping, reset the state if needed
+    if (!$scope.isRunning) {
+      $scope.checkboxes = {
+        logcatLogs: false,
+        bugreport: false,
+        radioLogs: false,
+        video: false,
+        audio: false
+      };
+      $scope.showCustomizeButton = {};
+    }
   };
   
   $scope.serviceCommands = [
@@ -132,7 +162,7 @@ module.exports = function ManualTestAssistCtrl(
     }
   }
 
-$scope.stopTestAssist = function () {
+  $scope.stopTestAssist = function () {
     $scope.pending = true
     $scope.control.stopTestAssist()
       .then(function (result) {
@@ -235,7 +265,7 @@ $scope.stopTestAssist = function () {
       $scope.showBugreportCaptureDoneMessage = false
     }, 6000);
 
-$scope.bugreportData = {
+    $scope.bugreportData = {
       bugreports: result.bugreports,
       status: result.status,
     }
