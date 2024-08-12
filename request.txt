@@ -27,3 +27,161 @@ curl --location --request POST 'https://tm-reddev03.oasisofsolution.com/api/v1/r
     location /audio/ {
       proxy_pass http://10.147.22.3:3001/;
     }
+
+ select(ng-model="selectedMaskFile", ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]", ng-options="(file.maskFile + (file.configFile? (' (' + file.configFile + ' packet config)') : '')) for file in maskFiles", ng-click="selectMaskFile(selectedMaskFile)")
+
+
+
+
+module.exports = function QxdmCtrl($scope, $routeParams, QxdmService, socket, $timeout) {
+  const serial = $routeParams.serial
+  
+  $scope.fileName = ""
+  $scope.waitTime = 5
+  $scope.qxdmCapable = false
+  $scope.deviceLogs = []
+  $scope.maskFiles = [{maskFile: "Default DMC", id: null}]
+  $scope.selectedMaskFile = $scope.maskFiles[0]
+  $scope.isGenerating = false
+  $scope.pending = true
+  
+  QxdmService.init(serial).then(async function (device) {
+    $scope.qxdmCapable = device.qxdm && device.qxdm.capability || false
+    $scope.maskFiles.push(...device.qxdm.maskFiles || [])
+    $scope.deviceLogs = device.qxdm.logs
+    $scope.device = device
+    $scope.isGenerating = await getQXDMLogStatus()
+  }).catch(function (err) {
+    $scope.error = err
+  }).finally(function () {
+    $scope.pending = false
+  })
+
+  // ===== OLD static duration generate logs =====
+  // const serial = $location.absUrl().split('/')[5]
+  // $scope.runLogs = function () {
+  //   $scope.isGenerating = true
+  //   $http.get(`/api/v1/devices/qxdm?serials=${serial}&waitTime=${$scope.waitTime}&maskFile=${$scope.selectedMaskFile}`).then(function (response) {
+  //     $scope.fileName = response.data.data.fileName
+  //   }).catch(function (error) {
+  //     console.error(error)
+  //   }).finally(function () {
+  //     $scope.isGenerating = false
+  //     $scope.$apply()
+  //   })
+  // }
+
+  async function getQXDMLogStatus() {
+    return $scope.control.getQXDMLogStatus().then(function (result) {
+      return result.body.active
+    })
+  }
+  
+  $scope.startLogs = function () {
+    $scope.pending = true
+    $scope.control.startQXDMLogs($scope.selectedMaskFile.id || null).then(function (result) {
+      $scope.isGenerating = true
+      if($scope.statusCode != 102) {
+        $scope.error = null
+      }
+    }).catch(function (err) {
+      $scope.error = err.message
+    }).finally(function() {
+      $scope.pending = false
+    })
+  }
+
+  $scope.stopLogs = function () {
+    $scope.pending = true
+    $scope.control.stopQXDMLogs().then(function (result) {
+      $scope.isGenerating = false
+      $scope.error = null
+    }).catch(function (err) {
+      $scope.error = err.message
+    }).finally(function () {
+      $scope.pending = false
+    })
+    $timeout(function () {
+      $scope.pending = false
+    }, 7500)
+  }
+
+  $scope.selectMaskFile = function (file) {
+    $scope.selectedMaskFile = file
+  }
+
+  socket.on('qxdm.log.result', function (logResult) {
+    if (!logResult || !logResult.success) {
+      $scope.isGenerating = false
+      $scope.pending = false
+      throw new Error("Did not get QXDM log result")
+    }
+    $scope.pending = true
+
+    $scope.fileName = logResult.logFileName
+    
+    QxdmService.refreshLogs(serial).then(function(newLogs) {
+      $scope.deviceLogs = newLogs
+      
+      $scope.showLogsDoneMessage = true
+
+      $timeout(function () {
+        $scope.showLogsDoneMessage = false
+      }, 4000);
+
+      $scope.isGenerating = false
+      $scope.pending = false
+    })
+  })
+  
+  socket.on('qxdm.status', function(data) {
+    if(data.statusCode != 200) {
+      $scope.error = data.message
+    }
+    $scope.statusCode = data.statusCode
+  })
+
+  $scope.copytext = function (control) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText($scope[control]).then(function () {
+      }, function (err) {
+        console.error("Error copying text to clipboard: ", err);
+      });
+    }
+    // Fallback to document.execCommand method for older browsers
+    else {
+      var tempInput = document.createElement("input");
+      tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+      tempInput.value = $scope[control];
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+    }
+    $scope.showCopiedMessage = true;
+    $timeout(function () {
+      $scope.showCopiedMessage = false;
+    }, 2000);
+  }
+  
+  $scope.downloadLogFile = function(log) {
+    QxdmService.downloadLogFile(log)
+  }
+
+  $scope.clear = function () {
+    $scope.fileName = ""
+    $scope.selectedMaskFile = $scope.maskFiles[0]
+    $scope.stopLogs()
+  }
+  
+  window.onbeforeunload = function () {
+    if ($scope.control) {
+      for (var i = 0; i < QxdmService.deviceEntries.length; i++) {
+        if (QxdmService.deviceEntries[i] === serial) {
+          QxdmService.deviceEntries.splice(i, 1)
+        }
+      }
+      QxdmService.deviceEntries[serial].started = false
+    }
+  }
+}
