@@ -1,6 +1,5 @@
-
 .row.stf-info.selectable(ng-controller='ManualTestAssistCtrl')
-  
+    
   .widget-container.fluid-height
     .heading
       span
@@ -29,6 +28,10 @@
           .form-group
             label Pair more device
             input.form-control(type="text")
+            //- select.form-control(ng-model='selectedDevice')
+            //-   option(value='device1')Moto G2 
+            //-   option(value='device2')Moto G3 
+             
           
           .gray-box
             ul.session-checkbox  
@@ -49,36 +52,37 @@
           ul.session-checkbox  
             li
               div
-                input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton()")
+                input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton('logcatLogs')")
                 span Logcat Logs
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+              
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.logcatLogs' ng-click='openLogscatPanel()')
                 span Customize
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton()")
+                input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')")
                 span Bugreport
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.bugreport' ng-click='openLogscatPanel()')
                 span Customize
               
             li
               div
-                input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton()")
+                input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton('radioLogs')")
                 span Radio Logs(QXDM)
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.radioLogs' ng-click='openLogscatPanel()')
                 span Customize
               //- button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()') Customize
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton()")
+                input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton('video')")
                 span Video
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.video' ng-click='openLogscatPanel()')
                 span Customize
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton()")
+                input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton('audio')")
                 span Audio
               //if showCustomizeButton
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton' ng-click='openLogscatPanel()')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.audio' ng-click='openLogscatPanel()')
                 span Customize
       <hr>
       .d-flex.justify-space-between
@@ -115,43 +119,44 @@
   .widget-content.padded.pt-0(ng-if="allPending")
     i.fa.fa-spinner.fa-spin.fa-fw
     
-div(ng-class="{'show':showLogscatPanel,'hide':!showLogscatPanel}" )
-  .custom-sidepanel 
-    .sidepanel-header
-      h5.d-flex.justify-space-between
-        span
-          i.fa.fa-file
-          | Logscat Logs
-        button.btn-sm.btn-link(ng-click='closeLogscatPanel()')
-          i.fa.fa-times
-    .padded
-      .row 
-        .col-sm-6
-          .form-group
-            label Logcat Level 
-            input.form-control(type="text")
-          .form-group
-            label PID
-            input.form-control(type="text")
-        .col-sm-6
-          .form-group
-            label Time 
-            input.form-control(type="text")
-          .form-group
-            label TID
-            input.form-control(type="text")
-        .col-sm-12
-          .form-group
-            label Tag 
-            input.form-control(type="text")
-          .form-group
-            label Text 
-            input.form-control(type="text")
-      .text-center 
-        button.btn.btn-sm.btn-secondary-outline
-          i.fa.fa-repeat
-          span clear
-        button.btn.btn-primary.btn-sm
-          i.fa.fa-save 
-          span Start
-            
+
+  div(ng-if='showLogscatPanel' , is-open = 'showLogscatPanel')
+    .custom-sidepanel
+      .sidepanel-header
+        h5.d-flex.justify-space-between
+          span
+            i.fa.fa-file
+            | Logscat Logs
+          button.btn-sm.btn-link(ng-click='closeLogscatPanel()')
+            i.fa.fa-times
+      .padded
+        .row 
+          .col-sm-6
+            .form-group
+              label Logcat Level 
+              input.form-control(type="text")
+            .form-group
+              label PID
+              input.form-control(type="text")
+          .col-sm-6
+            .form-group
+              label Time 
+              input.form-control(type="text")
+            .form-group
+              label TID
+              input.form-control(type="text")
+          .col-sm-12
+            .form-group
+              label Tag 
+              input.form-control(type="text")
+            .form-group
+              label Text 
+              input.form-control(type="text")
+        .text-center 
+          button.btn.btn-sm.btn-secondary-outline
+            i.fa.fa-repeat
+            span clear
+          button.btn.btn-primary.btn-sm
+            i.fa.fa-save 
+            span Start
+              
