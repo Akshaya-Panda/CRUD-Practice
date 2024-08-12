@@ -8,12 +8,15 @@
         button.btn.pull-right.btn-sm.btn-primary-outline
           i.fa.fa-history 
           span History
-        button.btn.pull-right.btn-primary.btn-sm
-          i.fa.fa-play 
-          span Start
-        button.btn.pull-right.btn-sm.btn-secondary-outline
+        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()')
+          i.fa(ng-class="{'fa-play': !isRunning, 'fa-stop': isRunning}")
+          span {{isRunning ? 'Stop' : 'Start'}}
+        button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization()")
           i.fa.fa-repeat
-          span clear
+          span Clear
+        //- button.btn.pull-right.btn-primary.btn-sm(ng-if="isRunning")
+        //-   i.fa.fa-camera
+        //-   span Capture Screenshot
         
           
     .padded
@@ -25,15 +28,20 @@
           .form-group
             label Session Description 
             textarea.form-control
-          .form-group
-            label Pair more device
-            input.form-control(type="text")
+          //- .form-group
+          //-   label Pair more device
+          //-   input.form-control(type="text")
             //- select.form-control(ng-model='selectedDevice')
             //-   option(value='device1')Moto G2 
             //-   option(value='device2')Moto G3 
+          .form-group
+            label Pair More Devices
+            select.form-control(ng-model='selectedDevice')
+              option(value='device1') EA211001
+              option(value='device2') moto g stylus 5G (2022)
              
           
-          .gray-box
+          .gray-box(ng-if="isRunning")
             ul.session-checkbox  
               li
                 div
@@ -52,49 +60,54 @@
           ul.session-checkbox  
             li
               div
-                input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton('logcatLogs')")
+                input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton('logcatLogs')",
+                 ng-disabled="isViewing")
                 span Logcat Logs
               
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.logcatLogs' ng-click='openLogscatPanel("logcatLogs")')
-                span Customize
+                span {{isViewing? 'View':'Customize'}}
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')")
+                input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')",
+                 ng-disabled="isViewing")
                 span Bugreport
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.bugreport' ng-click='openLogscatPanel("bugreport")')
-                span Customize
+                span {{isViewing? 'View':'Customize'}}
               
             li
               div
-                input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton('radioLogs')")
+                input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton('radioLogs')"
+                 ,ng-disabled='isViewing')
                 span Radio Logs(QXDM)
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.radioLogs' ng-click='openLogscatPanel("radioLogs")')
-                span Customize
+                span {{isViewing? 'View':'Customize'}}
               //- button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()') Customize
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton('video')")
+                input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton('video')",
+                 ng-disabled="isViewing")
                 span Video
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.video' ng-click='openLogscatPanel("video")')
-                span Customize
+                span {{isViewing? 'View':'Customize'}}
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton('audio')")
+                input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton('audio')",
+                 ng-disabled="isViewing")
                 span Audio
               //if showCustomizeButton
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.audio' ng-click='openLogscatPanel("audio")')
-                span Customize
+                span {{isViewing? 'View':'Customize'}}
       <hr>
       .d-flex.justify-space-between
         button.btn.btn-primary.btn-sm
           i.fa.fa-camera 
-          span Capture Screenshot
-        div.d-flex.align-items-center
+          span Take a Screenshot
+        div.d-flex.align-items-center(ng-if="isRunning")
           strong Total Screenshot 
           span.screenshot-count 7
         //- <img alt="Google" height="92" src="/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png" style="padding:28px 0 14px" width="272" id="hplogo">
 
-      .screenshot-container 
+      .screenshot-container(ng-if="isRunning")
         div.screenbox
           p.m-0.text-right
             i.fa.fa-clock-o
@@ -134,17 +147,17 @@
         div(ng-if="logtype === 'radioLogs'")
           .form-group
             label Mask File 
-            select.form-control(ng-model='maskFile')
+            select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
               option(value='mask1') Sandstorm.dmc
               option(value='mask2') Mask 2
           .form-group 
             label Packets 
-            input.form-control(type="text" ng-model="packets")
+            input.form-control(type="text" ng-model="packets" ,ng-disabled='isViewing')
         
         div(ng-if="logtype === 'video'")
           .form-group 
             label Frame Rate
-            input.form-control(type="text" ng-model="frameRate")
+            input.form-control(type="text" ng-model="frameRate" ,ng-disabled='isViewing')
         
           
           //- .col-sm-6
