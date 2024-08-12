@@ -1,3 +1,7 @@
+/**
+* Copyright © 2019 code initially contributed by Orange SA, authors: Denis Barbaron - Licensed under the Apache license 2.0
+**/
+
 const _ = require('lodash')
 
 module.exports = function ManualTestAssistCtrl(
@@ -8,6 +12,7 @@ module.exports = function ManualTestAssistCtrl(
   $http,
   socket,
   UserService,
+  QxdmService
 ) {
   const serial = $routeParams.serial
   const $ctrl = this;
@@ -46,6 +51,9 @@ module.exports = function ManualTestAssistCtrl(
   $scope.frameRate='';
   $scope.showCustomizeButton = {};
   $scope.isViewing = false;
+  $scope.maskFiles = [{maskFile: "Default DMC", id: null}]
+  $scope.selectedMaskFile = $scope.maskFiles[0]
+  
   
   $scope.$watch('session.testCaseID', function (newValue) {
     $scope.testCaseID = newValue;
@@ -104,9 +112,12 @@ module.exports = function ManualTestAssistCtrl(
   function init() {
     getTestAssistHistory()
       .then(getTestAssistStatus)
+      /* .then(loadMaskFiles) */
       .finally(function () {
         $scope.allPending = false
       })
+      console.log($scope.device)
+      
   }
 
   function getTestAssistHistory() {
@@ -140,6 +151,28 @@ module.exports = function ManualTestAssistCtrl(
         return $scope.isGenerating = result.lastData === "inprogress"
       })
   }
+  
+  $scope.selectMaskFile = function () {
+        $scope.maskFiles = [{ maskFile: "Default DMC", id: null }].concat(...device.qxdm.maskFiles || []);
+        $scope.selectedMaskFile = $scope.maskFiles[0];
+        console.log($scope.maskFiles,"wertyui")
+  
+  }
+      /* QxdmService.init(serial).then(async function (device) {
+        $scope.qxdmCapable = device.qxdm && device.qxdm.capability || false
+        $scope.maskFiles.push(...device.qxdm.maskFiles || [])
+        $scope.deviceLogs = device.qxdm.logs
+        $scope.device = device
+        $scope.isGenerating = await getQXDMLogStatus()
+      }).catch(function (err) {
+        $scope.error = err
+      }).finally(function () {
+        $scope.pending = false
+      })
+ 
+      $scope.selectMaskFile = function (file) {
+        $scope.selectedMaskFile = file
+      } */
 
   $scope.startTestAssist = function () {
     if (!!$scope.testCaseID) {
