@@ -147,9 +147,13 @@
         div(ng-if="logtype === 'radioLogs'")
           .form-group
             label Mask File 
-            select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
-              option(value='mask1') Sandstorm.dmc
-              option(value='mask2') Mask 2
+            //- select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
+            //-   option(value='mask1') Sandstorm.dmc
+            //-   option(value='mask2') Mask 2
+            select.form-control(ng-model="selectedMaskFile"
+              
+              ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
+              ng-change="selectMaskFile(selectedMaskFile)")
           .form-group 
             label Packets 
             input.form-control(type="text" ng-model="packets" ,ng-disabled='isViewing')
