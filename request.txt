@@ -185,3 +185,6 @@ module.exports = function QxdmCtrl($scope, $routeParams, QxdmService, socket, $t
     }
   }
 }
+
+
+maskFilesToDisplay = ["default dmc", ...device.qxdm.maskFiles.map(entry => entry.maskFile)]
