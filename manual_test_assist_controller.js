@@ -23,9 +23,44 @@ module.exports = function ManualTestAssistCtrl(
   $scope.session = {
     testCaseID: "",
   }
+  $scope.checkboxes = {
+    logcatLogs: false,
+    bugreport: false,
+    radioLogs: false,
+    video: false,
+    audio: false,
+  };
+ 
+  $scope.showCustomizeButton = {
+    logcatLogs: false,
+    bugreport: false,
+    radioLogs: false,
+    video: false,
+    audio: false,
+  };
+  $scope.showLogscatPanel = false;
+  
   $scope.$watch('session.testCaseID', function (newValue) {
     $scope.testCaseID = newValue;
   })
+  
+  $scope.updateCustomizeButton = function (checkboxKey) {
+    console.log("asdfgh")
+    $scope.showCustomizeButton[checkboxKey] = $scope.checkboxes[checkboxKey];
+  };
+ 
+  $scope.openLogscatPanel = function () {
+    console.log("wqerdfgh")
+    $scope.showLogscatPanel = true;
+    console.log("DFGHJGFGH",$scope.showLogscatPanel)
+    
+  };
+ 
+  $scope.closeLogscatPanel = function () {
+    $scope.showLogscatPanel = false;
+    console.log("close hoja bhai")
+  };
+  
   $scope.serviceCommands = [
     { name: "Telephony", interval: 5000 },
     { name: "Network Bandwidth", interval: 5000 },
