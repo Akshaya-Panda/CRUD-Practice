@@ -1,0 +1,102 @@
+
+.row.stf-info.selectable(ng-controller='ManualTestAssistCtrl')
+  .widget-content.padded.pt-0(ng-if="allPending")
+    i.fa.fa-spinner.fa-spin.fa-fw
+    
+  div(ng-disabled="allPending")
+    .col-sm-4.mb-3
+      h6 Test Case ID
+      input.form-control(type="text" ng-model='session.testCaseID' ng-disabled="pending || isGenerating")
+    div(ng-if="!pending")
+      .col-sm-2
+        button.btn.btn-sm.btn-primary(style="margin-top:25px" ng-if="!isGenerating" ng-click='startTestAssist()' ng-disabled="!session.testCaseID")
+          i.fa.fa-play 
+          span Start Logs
+
+        button.btn.btn-sm.btn-danger(style="margin-top:25px" ng-if="isGenerating" ng-click='stopTestAssist()')
+          i.fa.fa-stop 
+          span Stop Logs
+        div(ng-if="isGenerating")
+          span {{'Generating...' | translate}}
+          
+      .col-sm-3(style="margin-top:25px", ng-if="isGenerating || (!isGenerating && bugreportData.status == 'generating')")
+        .widget-content.padded.pt-0(ng-if="pendingBugreport")
+          i.fa.fa-spinner.fa-spin.fa-fw
+        div.bugreport-status(ng-if="!pendingBugreport")
+          button.btn.btn-sm.btn-danger(ng-disabled="bugreportData.status != 'ready'", ng-click="startBugreportCapture()")
+            i.fa.fa-bug 
+            span Capture bugreport
+          button.btn.btn-sm.btn-danger(ng-if="bugreportData.status == 'discarding' && !optInBugreport", ng-click="optInToBugreport()")
+            i.fa.fa-save 
+            span Opt-in to save
+          div.tooltip(ng-show="showBugreportCaptureDoneMessage") Bug report captured!
+          div(ng-if="bugreportData.status != 'ready'")
+            div(ng-if="bugreportData.status == 'generating'")
+              span.small-text Generating bugreport. May take a few minutes...
+            div(ng-if="bugreportData.status == 'discarding'") 
+              span.small-text(ng-if="optInBugreport") Bug report will be saved. May take a few minutes... 
+              span.small-text(ng-if="!optInBugreport") Waiting for last bugreport to be discarded... 
+              
+      .col-sm-2(ng-if="isGenerating")
+        button.btn.btn-sm.btn-primary(style="margin-top:25px" ng-click='captureScreenshot()', ng-disabled="isCapturingScreenshot")
+          i.fa.fa-camera
+          span {{'Screenshot' | translate}}
+        div
+            span.small-text {{screenshots.length}} screenshots
+        .widget-content.padded.pt-0(ng-if="isCapturingScreenshot")
+          i.fa.fa-spinner.fa-spin.fa-fw
+          
+    .col-sm-4
+      .widget-content.padded.pt-0(ng-if="pending")
+        i.fa.fa-spinner.fa-spin.fa-fw
+        
+    .widget-content.padded(ng-if="!pending && !isGenerating")
+      .row
+        .col-sm-12
+          h6 Service command intervals 
+          div(ng-repeat='command in serviceCommands track by $index')
+            label {{command.name}} 
+            input(style="margin-left: 6px", type="number", min="0", ng-model="command.interval")
+            span(style="margin-left: -96px") milliseconds
+
+    .widget-content.padded
+      .row
+        .col-sm-12
+          h5 {{"History" | translate}}
+          table.table.table-condensed(ng-if="history.length > 0")
+            thead
+              tr 
+                th Test Case ID
+                th Execution ID
+                th Duration
+                th Bugreports
+                th Status
+            tbody
+              tr(ng-repeat='testCase in history track by $index')
+                td
+                  span {{testCase.testCaseID}}
+                td
+                  span {{testCase.executionID ? (testCase.executionID.substring(0, 6) + "..."): ""}}
+                td
+                  span {{testCase.startTimestamp | date: 'd/M/yyyy h:mm a'}} - &nbsp;
+                  span {{(testCase.stopTimestamp || "...") | date: 'h:mm a'}}
+                td
+                  span {{testCase.bugreports && testCase.bugreports.list && testCase.bugreports.list.length ? testCase.bugreports.list.length : 0}}
+                td
+                  div(ng-if='testCase.isUploading !== true')
+                    span {{translateStatus(testCase)}}
+                    button.btn.btn-sm.btn-primary-outline(ng-if="testCase.status == 'stopped' || testCase.status == 'failed'", ng-click='upload(testCase)')
+                      i.fa.fa-save
+                      span(translate) {{testCase.status == 'stopped' ? "Upload" : "Reupload"}}
+                    button.btn.btn-sm.btn-danger-outline(ng-if="isAdmin && testCase.status == 'uploaded'", ng-click='deleteExecution(testCase)')
+                      i.fa.fa-trash-o
+                      span(translate) Delete
+                  div(ng-if='testCase.isUploading === true').selectable
+                    uib-progressbar(max='100', value='testCase.uploadProgress', ng-class='active').progress-striped
+                    div
+                      span
+                        strong
+                          span(translate) Uploading...
+                          span  ({{testCase.uploadProgress}}%)
+          div(ng-if="history.length == 0")
+            span No test cases executed yet.
