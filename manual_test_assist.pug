@@ -152,7 +152,7 @@
             //-   option(value='mask2') Mask 2
             select.form-control(ng-model="selectedMaskFile"
               
-              ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
+             // ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
               ng-change="selectMaskFile(selectedMaskFile)")
           .form-group 
             label Packets 
