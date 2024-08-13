@@ -1,7 +1,3 @@
-/**
-* Copyright © 2019 code initially contributed by Orange SA, authors: Denis Barbaron - Licensed under the Apache license 2.0
-**/
-
 const _ = require('lodash')
 
 module.exports = function ManualTestAssistCtrl(
@@ -116,7 +112,7 @@ module.exports = function ManualTestAssistCtrl(
       .finally(function () {
         $scope.allPending = false
       })
-      console.log($scope.device)
+      console.log($scope.device.qxdm.maskFiles)
       
   }
 
@@ -158,21 +154,7 @@ module.exports = function ManualTestAssistCtrl(
         console.log($scope.maskFiles,"wertyui")
   
   }
-      /* QxdmService.init(serial).then(async function (device) {
-        $scope.qxdmCapable = device.qxdm && device.qxdm.capability || false
-        $scope.maskFiles.push(...device.qxdm.maskFiles || [])
-        $scope.deviceLogs = device.qxdm.logs
-        $scope.device = device
-        $scope.isGenerating = await getQXDMLogStatus()
-      }).catch(function (err) {
-        $scope.error = err
-      }).finally(function () {
-        $scope.pending = false
-      })
- 
-      $scope.selectMaskFile = function (file) {
-        $scope.selectedMaskFile = file
-      } */
+      
 
   $scope.startTestAssist = function () {
     if (!!$scope.testCaseID) {
