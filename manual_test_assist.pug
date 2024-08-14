@@ -24,10 +24,10 @@
         .col-sm-6
           .form-group
             label Session Name 
-            input.form-control(type="text")
+            input.form-control(type="text" ng-model='session.testCaseID')
           .form-group
             label Session Description 
-            textarea.form-control
+            textarea.form-control(ng-model='session.description')
           //- .form-group
           //-   label Pair more device
           //-   input.form-control(type="text")
@@ -151,9 +151,9 @@
             //-   option(value='mask1') Sandstorm.dmc
             //-   option(value='mask2') Mask 2
             select.form-control(ng-model="selectedMaskFile"
-              
-             // ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
-              ng-change="selectMaskFile(selectedMaskFile)")
+              ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
+              ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
+              ng-change="selectMaskFile()")
           .form-group 
             label Packets 
             input.form-control(type="text" ng-model="packets" ,ng-disabled='isViewing')
@@ -190,10 +190,10 @@
           
             
         .text-center 
-          button.btn.btn-sm.btn-secondary-outline
+          button.btn.btn-sm.btn-secondary-outline(ng-click="clearCustomization()")
             i.fa.fa-repeat
             span clear
-          button.btn.btn-primary.btn-sm
+          button.btn.btn-primary.btn-sm(ng-click="saveCustomization()")
             i.fa.fa-save 
             span Save
               
