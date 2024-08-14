@@ -163,6 +163,22 @@
             label Frame Rate
             input.form-control(type="text" ng-model="frameRate" ,ng-disabled='isViewing')
         
+        div(ng-if="logtype === 'bugreport'")
+          .row
+            .col-sm-12
+              .form-group
+                label BugReport Actions
+                .radio
+                  input(type="radio", name="bugreportAction", ng-model="bugreportAction", value="continue", ng-change="updateBugreportAction()")
+                  span Continue with older bugreport
+                .radio
+                  input(type="radio", name="bugreportAction", ng-model="bugreportAction", value="save", ng-change="updateBugreportAction()")
+                  span Save older bugreport before session start
+                .radio
+                  input(type="radio", name="bugreportAction", ng-model="bugreportAction", value="clear", ng-change="updateBugreportAction()")
+                  span Clear older bugreport before session start
+          
+        
           
           //- .col-sm-6
           //-   .form-group
