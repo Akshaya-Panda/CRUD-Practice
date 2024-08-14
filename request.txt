@@ -1,3 +1,12 @@
+ Continue with older bugreport
+
+ Save older bugreport separately before session start – Once user save this option then wait start session until older bugreport is saved.
+
+ Clear older bugreport before session start - – Once user save this option then wait start session until older bugreport is captured and discarded.
+
+
+
+
 var request = require('request');
 var options = {
   'method': 'GET',
