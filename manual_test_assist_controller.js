@@ -93,6 +93,25 @@ module.exports = function ManualTestAssistCtrl(
   $scope.maskFiles = [{maskFile: "Default DMC", id: null}]
   $scope.selectedMaskFile = $scope.maskFiles[0]
   
+  $scope.bugreportAction = 'continue';
+  
+  $scope.updateBugreportAction = function() {
+    // Update the session configuration with the selected bugreport action
+    session.config.bugreportAction = $scope.bugreportAction;
+  };
+  
+  $scope.initializeSession = function() {
+    // Reset or initialize session configurations
+    session.config.bugreport = true; // Ensure bugreport option is enabled
+    session.config.bugreportAction = $scope.bugreportAction; // Set action based on user selection
+    // Additional initialization logic
+  };
+  
+  $scope.$watch('bugreportAction', function(newValue, oldValue) {
+    if (newValue !== oldValue) {
+      $scope.updateBugreportAction();
+    }
+  });
   
   $scope.$watch('session.testCaseID', function (newValue) {
     $scope.testCaseID = newValue;
@@ -221,6 +240,7 @@ module.exports = function ManualTestAssistCtrl(
     }
     else{
       $scope.startTestAssist();
+      $scope.initializeSession();
       
     }
   };
