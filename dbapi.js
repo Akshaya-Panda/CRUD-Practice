@@ -1,3 +1,7 @@
+dbapi.loadAccessToken = function (id) {
+  return db.run(r.table('accessTokens').get(id))
+}
+
 dbapi.loadModules = function() {
   return db.run(r.table('rpAudioModules'));
   }
@@ -18,11 +22,13 @@ dbapi.removeModule = function(id) {
   return db.run(r.table('rpAudioModules').get(id).delete());
   }
 
-  dbapi.checkFields = function(localip, port, subroute) {
+  dbapi.checkFields = function(localip, moduleport,managerport,websocketport, subroute) {
     return db.run(
         r.table('rpAudioModules').filter(function(module) {
           return module('localip').eq(localip)
-            .and(module('port').eq(port))
+            .and(module('moduleport').eq(moduleport))
+            .and(module('managerport').eq(managerport))
+            .and(module('websocketport').eq(websocketport))
             .or(module('subroute').eq(subroute));
         })
         .count()
@@ -51,7 +57,7 @@ dbapi.removeModule = function(id) {
       dbapi.validateSubroute(newModule.subroute);
 
       // Check for uniqueness before inserting
-      return dbapi.checkFields(newModule.localip, newModule.port, newModule.subroute)
+      return dbapi.checkFields(newModule.localip, newModule.moduleport,newModule.managerport,newModule.websocketport,newModule.subroute)
         .then(isUnique => {
           if (!isUnique) {
             throw new Error('Subroute, localip, or port already exists');
@@ -77,7 +83,8 @@ dbapi.removeModule = function(id) {
         if (!existingModule) {
           throw new Error('Module not found');
         }
-        return dbapi.checkFields(updatedModule.localip, updatedModule.port, updatedModule.subroute)
+        return dbapi.checkFields(updatedModule.localip, updatedModule.moduleport,updatedModule.managerport,updatedModule.websocketport
+          , updatedModule.subroute)
           .then(isUnique => {
             if (!isUnique) {
               throw new Error('Subroute, localip, or port already exists');4
