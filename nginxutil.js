@@ -9,17 +9,21 @@ const glob = require('glob');
 const NGINX_DIR = '/etc/nginx/conf.d';
  
 function generateConfigEntry(module) {
+
+    const subrouteWithoutSlash = module.subroute.replace(/\/$/, '');
+    const subroute_manager = `${subrouteWithoutSlash}-manager/`;
+    const subroute_websocket = `${subrouteWithoutSlash}-websocket/`;
     
     return `
         location ${module.subroute} {
         proxy_pass http://${module.localip}:${module.moduleport}/;
         }
 
-        location ${module.subroute.replace(/\/$/,"")}-manager/ {
+        location ${subroute_manager} {
 	    proxy_pass http://${module.localip}:${module.managerport}/;
         }
  
-        location ${module.subroute.replace(/\/$/,"")}-websocket/ {
+        location ${subroute_websocket} {
         proxy_pass http://${module.localip}:${module.websocketport}/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -73,7 +77,6 @@ async function reloadNginx() {
         return false;
     }
 }
- 
 async function checkIpPortAvailability(localip, port) {
     const url = `http://${localip}:${port}`;
     try {
@@ -84,7 +87,7 @@ async function checkIpPortAvailability(localip, port) {
         return false;
     }
 }
-
+ 
 async function readExistingConfigs() {
     return new Promise((resolve, reject) => {
         glob(`${NGINX_DIR}/*.rpconf`, (err, files) => {
@@ -185,7 +188,7 @@ async function validateAndUpdateConfigForModule(module , newModule) {
         throw new Error('Module cannot be null for updates');
     }
 }
- 
+
 async function deleteModuleConfig(module) {
     if (module) {
         await deleteConfigFile(module);
