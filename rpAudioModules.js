@@ -107,6 +107,9 @@ module.updatedBy = req.user.email;
 try {
   validateModule(module);
   console.log(module,"jhgfdghjkhgfdxjkhgfcvbnnb ")
+   module.subroute_manager = `${module.subroute.replace(/\/$/, '')}-manager/`;
+  module.subroute_websocket = `${module.subroute.replace(/\/$/, '')}-websocket/`;
+
    await nginxutil.validateAndUpdateNginxConfig(module)
       await dbapi.insertRpAudioModule(module);
       res.json({ success: true, module });
@@ -123,6 +126,8 @@ try {
   }
 }
  }
+
+ 
 async function updateModule(req, res) {
 const module = req.body; 
 const id = req.swagger.params.id.value;
@@ -156,9 +161,11 @@ module.updatedBy = req.user.email;
     if (!existingModule) {
         return res.status(404).json({ success: false, message: 'Module not found' });
     }
+     module.subroute_manager = `${module.subroute.replace(/\/$/, '')}-manager/`;
+     module.subroute_websocket = `${module.subroute.replace(/\/$/, '')}-websocket/`;
     await nginxutil.validateAndUpdateConfigForModule(existingModule , module);
         const updatedModule = await dbapi.updateRpAudioModule(id, module);
-        res.json({ success: true, module: updatedModule });
+        res.json({ success: true, module: updatedModule});
     
 } catch (err) {
     if (['Local IP, Port or Subroute already exists', 
@@ -172,7 +179,6 @@ module.updatedBy = req.user.email;
     }
 }
 }
- 
 async function deleteModule(req, res) {
 const id = req.swagger.params.id.value;
   // dbapi.removeModule(id).then(stats => {
