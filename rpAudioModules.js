@@ -82,36 +82,25 @@ function validateModule(module) {
     throw new Error('Subroute should start with a forward slash and end with a backward slash');
   }
  
-  //return dbapi.checkFields(module.localip, module.port, module.subroute);
+  
 }
  
 async function addModule(req, res) {
 const module = req.body;
 module.createdBy = req.user.email;
 module.updatedBy = req.user.email;
-//   validateModule(module)
-//   .then(() => { validateIpPort(module.localip,module.port,module.subroute)})
-//   .then(()=>{
-//     return dbapi.insertRpAudioModule(module);
-//   }).then(() => {
-//     return dbapi.updateNginxConfig();
-//   }).then(()=>{
-//     res.json({ success: true });
-//   }).catch(err => {
-//     if (err.message === 'Subroute, localip, or port already exists') {
-//       res.status(400).json({ success: false, message: err.message });
-//     } else {
-//       apiutil.internalError(res, 'Failed to add module: ', err.stack);
-//     }
-//   });
+
 try {
   validateModule(module);
-  console.log(module,"jhgfdghjkhgfdxjkhgfcvbnnb ")
+  
    module.subroute_manager = `${module.subroute.replace(/\/$/, '')}-manager/`;
   module.subroute_websocket = `${module.subroute.replace(/\/$/, '')}-websocket/`;
-
-   await nginxutil.validateAndUpdateNginxConfig(module)
-      await dbapi.insertRpAudioModule(module);
+  
+  
+  await nginxutil.validateAndUpdateNginxConfig(module)
+  await dbapi.insertRpAudioModule(module); 
+   
+     
       res.json({ success: true, module });
   
 } catch (err) {
@@ -133,39 +122,31 @@ const module = req.body;
 const id = req.swagger.params.id.value;
 module.updatedBy = req.user.email;
  
-  // validateModule(module)
-  // .then(() => { validateIpPort(module.localip,module.port,module.subroute)})
-  // .then(()=>
-  //   {
-  //   return dbapi.updateRpAudioModule(id, module);
-  // }).then(stats => {
-  //   if (stats.replaced) {
-	// console.log(stats,"qwertytredwrtyutre")
-
-  //     res.json({ success: true });
-  //   } else {
-  //     res.status(404).json({ success: false, message: 'Module not found' });
-  //   }
-  // }).catch(err => {
-  //   if (err.message === 'Subroute, localip, or port already exists') {
-  //     res.status(400).json({ success: false, message: err.message });
-  //   } else {
-  //     apiutil.internalError(res, 'Failed to update module: ', err.stack);
-  //   }
-  // });
   try {
-    validateModule(module);
-    console.log(module,"qwertyuio");
+   
     const existingModule = await dbapi.loadModule(id);
     console.log(existingModule,"asdfghjfghj");
     if (!existingModule) {
         return res.status(404).json({ success: false, message: 'Module not found' });
     }
+
+    if (module.localip !== module.localip ||
+      module.moduleport !== module.moduleport ||
+      module.subroute !== module.subroute) {
+      
+      validateModule(module);
      module.subroute_manager = `${module.subroute.replace(/\/$/, '')}-manager/`;
      module.subroute_websocket = `${module.subroute.replace(/\/$/, '')}-websocket/`;
-    await nginxutil.validateAndUpdateConfigForModule(existingModule , module);
-        const updatedModule = await dbapi.updateRpAudioModule(id, module);
-        res.json({ success: true, module: updatedModule});
+    
+      }
+     //const moduleToUpdate = { ...existingModule, ...module };
+      await nginxutil.validateAndUpdateConfigForModule(existingModule , module);
+        const updatedModule = await dbapi.updateRpAudioModule(id, module);  
+
+        res.json({ success: true, module:{ ...updatedModule,
+                                          subroute_manager: module.subroute_manager,
+                                          subroute_websocket: module.subroute_websocket
+        }});
     
 } catch (err) {
     if (['Local IP, Port or Subroute already exists', 
@@ -179,19 +160,10 @@ module.updatedBy = req.user.email;
     }
 }
 }
+ 
 async function deleteModule(req, res) {
 const id = req.swagger.params.id.value;
-  // dbapi.removeModule(id).then(stats => {
-	// console.log(stats,"hgfdsdfghjhgfdsfgh")
-  //   if (stats.deleted) {
-  //     return dbapi.updateNginxConfig();
-  //     res.json({ success: true });
-  //   } else {
-  //     res.status(404).json({ success: false, message: 'Module not found' });
-  //   }
-  // }).catch(err => {
-  //   apiutil.internalError(res, 'Failed to delete module: ', err.stack);
-  // });
+  
 
   try {
     const moduleToDelete = await dbapi.loadModule(id);
@@ -205,3 +177,5 @@ const id = req.swagger.params.id.value;
     apiutil.internalError(res, 'Failed to delete module: ', err.stack);
 }
 }
+
+
