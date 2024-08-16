@@ -1,6 +1,3 @@
-const file_path = '/etc/nginx/conf.d/audio.rpconf'
-const fs = require('fs')
-
 dbapi.loadModules = function() {
   return db.run(r.table('rpAudioModules'));
   }
@@ -60,6 +57,7 @@ dbapi.removeModule = function(id) {
             throw new Error('Subroute, localip, or port already exists');
           }
     return db.run(r.table('rpAudioModules').insert(newModule));
+
         });
     };
      
@@ -88,30 +86,3 @@ dbapi.removeModule = function(id) {
           });
       });
     };
-
-    
-  function generateConfigEntry(module) {
-    return `#${module.id}
-        location ${module.subroute} {
-          proxy_pass http://${module.localip}:${module.port}/;
-        }
-      `;
-    }
-      
-    
-    function writeConfigFile(configEntries) {
-      const configContent = configEntries.join('\n\n');
-      fs.writeFileSync(file_path, configContent, 'utf8');
-    }
-      
-    
-    dbapi.updateNginxConfig=function() {
-      
-      return dbapi.loadModules().then(modules => {
-        console.log(modules._responses[0]['r'],"qwertyuio")
-        const configEntries = modules._responses[0]['r'].map(generateConfigEntry);
-        writeConfigFile(configEntries);
-      }).catch(err => {
-        console.error('Failed to update Nginx config:', err);
-      });
-    }
