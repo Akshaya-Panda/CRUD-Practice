@@ -27,6 +27,7 @@ module.exports = function ManualTestAssistCtrl(
   $scope.bugreportData = { status: 'discarding', bugreports: [] }
   $scope.screenshots = []
   $scope.frameRate = ""
+  $scope.customLogName=""
   $scope.session = {
     testCaseID: "",
     description:"",
@@ -92,20 +93,31 @@ module.exports = function ManualTestAssistCtrl(
   $scope.isViewing = false;
   $scope.maskFiles = [{maskFile: "Default DMC", id: null}]
   $scope.selectedMaskFile = $scope.maskFiles[0]
+  $scope.session = { testCaseID: "", description: "" };
   
   $scope.bugreportAction = 'continue';
   
   $scope.updateBugreportAction = function() {
-    // Update the session configuration with the selected bugreport action
+    
     session.config.bugreportAction = $scope.bugreportAction;
   };
   
   $scope.initializeSession = function() {
-    // Reset or initialize session configurations
-    session.config.bugreport = true; // Ensure bugreport option is enabled
-    session.config.bugreportAction = $scope.bugreportAction; // Set action based on user selection
-    // Additional initialization logic
-  };
+    $scope.session = {
+      testCaseID: $scope.session.testCaseID || '',
+      description: $scope.session.description || '',
+      logcatLogs: $scope.session.logcatLogs || '',
+      bugreportAction: $scope.session.bugreportAction || '',
+      radioLogs: {
+        maskFile: $scope.session.radioLogs.maskFile || null,
+        packets: $scope.session.radioLogs.packets || ''
+      },
+      video: {
+  frameRate: $scope.session.video.frameRate || ''
+      },
+  audio: $scope.session.audio || ''
+    };
+  }
   
   $scope.$watch('bugreportAction', function(newValue, oldValue) {
     if (newValue !== oldValue) {
@@ -127,26 +139,29 @@ module.exports = function ManualTestAssistCtrl(
   $scope.openLogscatPanel = function (type) {
     console.log("wqerdfgh")
     $scope.logtype = type;
+    $scope.customLogName = type.charAt(0).toUpperCase() + type.slice(1);
     $scope.showLogscatPanel = true;
+    
     console.log("DFGHJGFGH",$scope.showLogscatPanel)
     switch(type) {
       case 'radioLogs':
-        $scope.selectedMaskFile = $scope.currentCustomization.radioLogs.maskFile || $scope.maskFiles[0];
-        $scope.packets = $scope.currentCustomization.radioLogs.packets || '';
-        break;
-      case 'video':
-  $scope.frameRate = $scope.currentCustomization.video.frameRate || '';
-        break;
-      case 'logcatLogs':
-       
-        break;
-      case 'bugreport':
-        
-        break;
-      case 'audio':
-        
-        break;
-    }
+      $scope.selectedMaskFile = $scope.session.radioLogs.maskFile || $scope.maskFiles[0];
+      $scope.packets = $scope.session.radioLogs.packets || '';
+      break;
+    case 'video':
+      $scope.frameRate = $scope.session.video.frameRate || '';
+      break;
+    case 'logcatLogs':
+      // Assuming session.logcatLogs is a string or similar
+      break;
+    case 'bugreport':
+      // Assuming session.bugreport is a string or similar
+      break;
+    case 'audio':
+// Assuming session.audio is a string or similar
+      break;
+  }
+  
     
   };
   
@@ -155,70 +170,73 @@ module.exports = function ManualTestAssistCtrl(
     $scope.showLogscatPanel = false;
     $scope.logtype='';
     console.log("close hoja bhai")
-    $scope.clearCustomization();
+    //$scope.clearCustomization();
   };
   
   $scope.saveCustomization = function() {
     switch($scope.logtype) {
       case 'radioLogs':
-        $scope.currentCustomization.radioLogs = {
+        $scope.session.radioLogs = {
           maskFile: $scope.selectedMaskFile,
           packets: $scope.packets,
-          visible:true
+          visible: true
         };
         break;
       case 'video':
-  $scope.currentCustomization.video = {
+  $scope.session.video = {
           frameRate: $scope.frameRate,
-          visible:true
+          visible: true
         };
         break;
       case 'logcatLogs':
-        $scope.currentCustomization.logcatLogs.visible=true
+        $scope.session.logcatLogs.visible = true;
         break;
       case 'bugreport':
-        $scope.currentCustomization.bugreport.visible=true
+        $scope.session.bugreport.visible = true;
         break;
       case 'audio':
-        $scope.currentCustomization.audio.visible=true
+       $scope.session.audio.visible = true;
         break;
     }
-    
-    
-    angular.extend($scope.session, $scope.currentCustomization);
-    
-    
-    alert('Customization saved successfully!');   
+   
+    alert('Customization saved successfully!');
   };
   
   $scope.clearCustomization = function() {
     switch($scope.logtype) {
       case 'radioLogs':
-        $scope.currentCustomization.radioLogs = {
+        $scope.selectedMaskFile = $scope.maskFiles[0]; 
+        $scope.packets = '';
+        $scope.session.radioLogs = {
           maskFile: null,
           packets: '',
-          visible:false
+          visible: false
         };
         break;
       case 'video':
-  $scope.currentCustomization.video = {
+        $scope.frameRate = '30'; 
+        $scope.session.video = {
           frameRate: '',
-          visible:false
+          visible: false
         };
         break;
       case 'logcatLogs':
-        $scope.currentCustomization.logcatLogs.visible=false
+        
+        $scope.session.logcatLogs.visible = false;
         break;
       case 'bugreport':
-        $scope.currentCustomization.bugreport.visible=false
+        
+        $scope.session.bugreport.visible = false;
         break;
       case 'audio':
-        $scope.currentCustomization.audio.visible=false
+        
+  $scope.session.audio.visible = false;
         break;
     }
     
-    
-    $scope.saveCustomization();
+    alert('Customization cleared successfully!')
+    //$scope.saveCustomization();
+    //$scope.initializeSession();
   
   };
   
