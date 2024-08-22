@@ -2,9 +2,6 @@
 * Copyright © 2019 code initially contributed by Orange SA, authors: Denis Barbaron - Licensed under the Apache license 2.0
 **/
 
-const _ = require('lodash')
-
-
 module.exports = function ManualTestAssistCtrl(
   $scope,
   $routeParams,
@@ -24,21 +21,24 @@ module.exports = function ManualTestAssistCtrl(
   $scope.optInBugreport = false;
   $scope.history = [];
   $scope.isGenerating = false;
-  $scope.bugreportData = { status: 'discarding', bugreports: [] }
-  $scope.screenshots = []
-  $scope.frameRate = ""
-  $scope.customLogName=""
+  $scope.bugreportData = { status: 'discarding', bugreports: [] };
+  $scope.screenshots = [];
+  $scope.frameRate = "30"; // Default frame rate
+  $scope.customLogName = "";
   $scope.session = {
     testCaseID: "",
-    description:"",
-    radioLogs:{
-      maskFile:null,
-      packets:""
+    description: "",
+    radioLogs: {
+      maskFile: null,
+      packets: ""
     },
-    video:{
-      framerate: $scope.frameRate
-    }
-  }
+    video: {
+      frameRate: $scope.frameRate
+    },
+    logcatLogs: "",
+    bugreport: "",
+    audio: ""
+  };
   $scope.checkboxes = {
     logcatLogs: false,
     bugreport: false,
@@ -46,7 +46,6 @@ module.exports = function ManualTestAssistCtrl(
     video: false,
     audio: false,
   };
- 
   $scope.showCustomizeButton = {
     logcatLogs: false,
     bugreport: false,
@@ -59,47 +58,38 @@ module.exports = function ManualTestAssistCtrl(
     radioLogs: {
       maskFile: null,
       packets: '',
-      visible:false
+      visible: false
     },
     video: {
-      frameRate: $scope.frameRate
-      ,
-      visible:false
+      frameRate: $scope.frameRate,
+      visible: false
     },
     logcatLogs: {
-      
-      
-      visible:false
+      visible: false
     },
-    bugreport: {
-      
-      
-      visible:false
+    bugreportAction: {
+      visible: false
     },
     audio: {
-      
-      visible:false
-      
+      visible: false
     }
   };
   
   $scope.showLogscatPanel = false;
-  $scope.isRunning = false
-  $scope.logtype='';
-  $scope.maskFile='';
-  $scope.packets='';
-  $scope.frameRate='';
+  $scope.isRunning = false;
+  $scope.logtype = '';
+  $scope.maskFile = '';
+  $scope.packets = '';
+  $scope.frameRate = '';
   $scope.showCustomizeButton = {};
   $scope.isViewing = false;
-  $scope.maskFiles = [{maskFile: "Default DMC", id: null}]
-  $scope.selectedMaskFile = $scope.maskFiles[0]
-  $scope.session = { testCaseID: "", description: "" };
+  $scope.maskFiles = [{ maskFile: "Default DMC", id: null }];
+  $scope.selectedMaskFile = $scope.maskFiles[0];
   
   $scope.bugreportAction = 'continue';
   
   $scope.updateBugreportAction = function() {
-    
-    session.config.bugreportAction = $scope.bugreportAction;
+    $scope.session.bugreportAction = $scope.bugreportAction;
   };
   
   $scope.initializeSession = function() {
@@ -113,11 +103,11 @@ module.exports = function ManualTestAssistCtrl(
         packets: $scope.session.radioLogs.packets || ''
       },
       video: {
-  frameRate: $scope.session.video.frameRate || ''
+    frameRate: $scope.session.video.frameRate || ''
       },
-  audio: $scope.session.audio || ''
+    audio: $scope.session.audio || ''
     };
-  }
+  };
   
   $scope.$watch('bugreportAction', function(newValue, oldValue) {
     if (newValue !== oldValue) {
@@ -125,52 +115,41 @@ module.exports = function ManualTestAssistCtrl(
     }
   });
   
-  $scope.$watch('session.testCaseID', function (newValue) {
+  $scope.$watch('session.testCaseID', function(newValue) {
     $scope.testCaseID = newValue;
-  })
+  });
   
-  $scope.updateCustomizeButton = function (checkboxKey) {
-    console.log("asdfgh")
+  $scope.updateCustomizeButton = function(checkboxKey) {
     $scope.showCustomizeButton[checkboxKey] = $scope.checkboxes[checkboxKey];
   };
   
-  
- 
-  $scope.openLogscatPanel = function (type) {
-    console.log("wqerdfgh")
+  $scope.openLogscatPanel = function(type) {
     $scope.logtype = type;
     $scope.customLogName = type.charAt(0).toUpperCase() + type.slice(1);
     $scope.showLogscatPanel = true;
-    
-    console.log("DFGHJGFGH",$scope.showLogscatPanel)
+ 
     switch(type) {
       case 'radioLogs':
-      $scope.selectedMaskFile = $scope.session.radioLogs.maskFile || $scope.maskFiles[0];
-      $scope.packets = $scope.session.radioLogs.packets || '';
-      break;
-    case 'video':
-      $scope.frameRate = $scope.session.video.frameRate || '';
-      break;
-    case 'logcatLogs':
-      // Assuming session.logcatLogs is a string or similar
-      break;
-    case 'bugreport':
-      // Assuming session.bugreport is a string or similar
-      break;
-    case 'audio':
-// Assuming session.audio is a string or similar
-      break;
-  }
-  
-    
+        $scope.selectedMaskFile = $scope.session.radioLogs.maskFile || $scope.maskFiles[0];
+        $scope.packets = $scope.session.radioLogs.packets || '';
+        break;
+      case 'video':
+$scope.frameRate = $scope.session.video.frameRate || '30'; 
+        break;
+      case 'logcatLogs':
+        
+        break;
+      case 'bugreportAction':
+        $scope.bugreportAction =$scope.session.bugreportAction
+        break;
+      case 'audio':
+       
+        break;
+    }
   };
-  
- 
-  $scope.closeLogscatPanel = function () {
+  $scope.closeLogscatPanel = function() {
     $scope.showLogscatPanel = false;
-    $scope.logtype='';
-    console.log("close hoja bhai")
-    //$scope.clearCustomization();
+    $scope.logtype = '';
   };
   
   $scope.saveCustomization = function() {
@@ -183,7 +162,7 @@ module.exports = function ManualTestAssistCtrl(
         };
         break;
       case 'video':
-  $scope.session.video = {
+          $scope.session.video = {
           frameRate: $scope.frameRate,
           visible: true
         };
@@ -191,21 +170,21 @@ module.exports = function ManualTestAssistCtrl(
       case 'logcatLogs':
         $scope.session.logcatLogs.visible = true;
         break;
-      case 'bugreport':
-        $scope.session.bugreport.visible = true;
+      case 'bugreportAction':
+        $scope.session.bugreportAction.visible = true;
         break;
       case 'audio':
-       $scope.session.audio.visible = true;
+        $scope.session.audio.visible = true;
         break;
     }
-   
+ 
     alert('Customization saved successfully!');
   };
   
   $scope.clearCustomization = function() {
     switch($scope.logtype) {
       case 'radioLogs':
-        $scope.selectedMaskFile = $scope.maskFiles[0]; 
+        $scope.selectedMaskFile = $scope.maskFiles[0];
         $scope.packets = '';
         $scope.session.radioLogs = {
           maskFile: null,
@@ -214,7 +193,7 @@ module.exports = function ManualTestAssistCtrl(
         };
         break;
       case 'video':
-        $scope.frameRate = '30'; 
+        $scope.frameRate = '30';
         $scope.session.video = {
           frameRate: '',
           visible: false
@@ -222,24 +201,21 @@ module.exports = function ManualTestAssistCtrl(
         break;
       case 'logcatLogs':
         
-        $scope.session.logcatLogs.visible = false;
         break;
-      case 'bugreport':
-        
-        $scope.session.bugreport.visible = false;
+      case 'bugreportAction':
+       $scope.session.bugreportAction = {
+        bugreportAction:'continue',
+       visible:false
+       };
         break;
       case 'audio':
         
-  $scope.session.audio.visible = false;
         break;
     }
-    
-    alert('Customization cleared successfully!')
-    //$scope.saveCustomization();
-    //$scope.initializeSession();
-  
-  };
-  
+ 
+    alert('Customization cleared successfully!');
+    $scope.initializeSession();
+  };  
   
   $scope.toggleStartStop = function() {
     $scope.isRunning = !$scope.isRunning;
@@ -253,12 +229,13 @@ module.exports = function ManualTestAssistCtrl(
         video: false,
         audio: false
       };
-      $scope.stopTestAssist();
+      $scope.stopTestAssist=function(){
+      window.location.reload();}
       $scope.showCustomizeButton = {};
     }
     else{
       $scope.startTestAssist();
-      $scope.initializeSession();
+      //$scope.initializeSession();
       
     }
   };
@@ -288,6 +265,7 @@ module.exports = function ManualTestAssistCtrl(
       console.log($scope.device.qxdm.maskFiles,"console ke bahar wala hun mein")
       
   }
+  
   
   /* function loadMaskFiles() {
     QxdmService.selectMaskFile() // Ensure this service is implemented to fetch mask files
