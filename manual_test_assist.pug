@@ -98,7 +98,7 @@
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.audio' ng-click='openLogscatPanel("audio")')
                 span {{isViewing? 'View':'Customize'}}
       <hr>
-      .d-flex.justify-space-between
+      .d-flex.justify-space-between(ng-if="isRunning")
         button.btn.btn-primary.btn-sm
           i.fa.fa-camera 
           span Take a Screenshot
@@ -107,7 +107,7 @@
           span.screenshot-count 7
         //- <img alt="Google" height="92" src="/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png" style="padding:28px 0 14px" width="272" id="hplogo">
 
-      .screenshot-container(ng-if="isRunning")
+     // .screenshot-container(ng-if="isRunning")
         div.screenbox
           p.m-0.text-right
             i.fa.fa-clock-o
@@ -129,17 +129,17 @@
             span 3:40 PM 
           img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
       
-  .widget-content.padded.pt-0(ng-if="allPending")
-    i.fa.fa-spinner.fa-spin.fa-fw
+    //- .widget-content.padded.pt-0(ng-if="allPending")
+    //- i.fa.fa-spinner.fa-spin.fa-fw
     
 
-  div(ng-if='showLogscatPanel' , is-open = 'showLogscatPanel')
+   div(ng-if='showLogscatPanel' , is-open = 'showLogscatPanel')
     .custom-sidepanel
       .sidepanel-header
-        h5.d-flex.justify-space-between
+        h5.d-flex.justify-space-between 
           span
             i.fa.fa-file
-            |Logs
+            |{{customLogName}}
           button.btn-sm.btn-link(ng-click='closeLogscatPanel()')
             i.fa.fa-times
       .padded
@@ -150,18 +150,21 @@
             //- select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
             //-   option(value='mask1') Sandstorm.dmc
             //-   option(value='mask2') Mask 2
-            select.form-control(ng-model="selectedMaskFile"
+            select.form-control(ng-model="session.selectedMaskFile"
               ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
               ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
               ng-change="selectMaskFile()")
           .form-group 
             label Packets 
-            input.form-control(type="text" ng-model="packets" ,ng-disabled='isViewing')
+            input.form-control(type="text" ng-model="session.packets" ,ng-disabled='isViewing')
         
         div(ng-if="logtype === 'video'")
-          .form-group 
-            label Frame Rate
-            input.form-control(type="text" ng-model="frameRate" ,ng-disabled='isViewing')
+          .form-group
+            label frameRate 
+            select.form-control(ng-model='session.frameRate')
+              option(value='1') 15
+              option(value='2') 30
+              option(value='3') 35
         
         div(ng-if="logtype === 'bugreport'")
           .row
@@ -169,13 +172,13 @@
               .form-group
                 label BugReport Actions
                 .radio
-                  input(type="radio", name="bugreportAction", ng-model="bugreportAction", value="continue", ng-change="updateBugreportAction()")
+                  input(type="radio", name="bugreportAction", ng-model="session.bugreportAction", value="continue", ng-change="updateBugreportAction()")
                   span Continue with older bugreport
                 .radio
-                  input(type="radio", name="bugreportAction", ng-model="bugreportAction", value="save", ng-change="updateBugreportAction()")
+                  input(type="radio", name="bugreportAction", ng-model="session.bugreportAction", value="save", ng-change="updateBugreportAction()")
                   span Save older bugreport before session start
                 .radio
-                  input(type="radio", name="bugreportAction", ng-model="bugreportAction", value="clear", ng-change="updateBugreportAction()")
+                  input(type="radio", name="bugrepoiortAction", ng-model="sessn.bugreportAction", value="clear", ng-change="updateBugreportAction()")
                   span Clear older bugreport before session start
           
         
@@ -206,10 +209,10 @@
           
             
         .text-center 
-          button.btn.btn-sm.btn-secondary-outline(ng-click="clearCustomization()")
+          button.btn.btn-sm.btn-secondary-outline(ng-if="!isViewing" ng-click="clearCustomization()")
             i.fa.fa-repeat
             span clear
-          button.btn.btn-primary.btn-sm(ng-click="saveCustomization()")
+          button.btn.btn-primary.btn-sm(ng-if="!isViewing" ng-click="saveCustomization()")
             i.fa.fa-save 
             span Save
               
