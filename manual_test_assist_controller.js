@@ -23,7 +23,7 @@ module.exports = function ManualTestAssistCtrl(
   $scope.isGenerating = false;
   $scope.bugreportData = { status: 'discarding', bugreports: [] };
   $scope.screenshots = [];
-  $scope.frameRate = "30"; // Default frame rate
+  $scope.frameRate = "15";
   $scope.customLogName = "";
   $scope.session = {
     testCaseID: "",
@@ -33,7 +33,7 @@ module.exports = function ManualTestAssistCtrl(
       packets: ""
     },
     video: {
-      frameRate: $scope.frameRate
+      frameRate: "15"
     },
     logcatLogs: "",
     bugreport: "",
@@ -86,10 +86,10 @@ module.exports = function ManualTestAssistCtrl(
   $scope.maskFiles = [{ maskFile: "Default DMC", id: null }];
   $scope.selectedMaskFile = $scope.maskFiles[0];
   
-  $scope.bugreportAction = 'continue';
+  $scope.session.bugreportAction = 'continue';
   
   $scope.updateBugreportAction = function() {
-    $scope.session.bugreportAction = $scope.bugreportAction;
+    $scope.bugreportAction = $scope.session.bugreportAction;
   };
   
   $scope.initializeSession = function() {
@@ -103,17 +103,20 @@ module.exports = function ManualTestAssistCtrl(
         packets: $scope.session.radioLogs.packets || ''
       },
       video: {
-    frameRate: $scope.session.video.frameRate || ''
+    frameRate: $scope.session.video.frameRate || '15'
       },
     audio: $scope.session.audio || ''
     };
   };
   
-  $scope.$watch('bugreportAction', function(newValue, oldValue) {
+  /* $scope.$watch('bugreportAction', function(newValue, oldValue) {
     if (newValue !== oldValue) {
-      $scope.updateBugreportAction();
+      $scope.session.bugreportAction = newValue;
+      console.log("new value is being selected")
     }
-  });
+    console.log("OLD VALUE")
+  }); */
+  $scope.$watch('bugreportAction', $scope.updateBugreportAction);
   
   $scope.$watch('session.testCaseID', function(newValue) {
     $scope.testCaseID = newValue;
@@ -134,13 +137,13 @@ module.exports = function ManualTestAssistCtrl(
         $scope.packets = $scope.session.radioLogs.packets || '';
         break;
       case 'video':
-$scope.frameRate = $scope.session.video.frameRate || '30'; 
+        $scope.frameRate = $scope.session.video.frameRate || '15'; 
         break;
       case 'logcatLogs':
         
         break;
-      case 'bugreportAction':
-        $scope.bugreportAction =$scope.session.bugreportAction
+      case 'bugreport':
+        $scope.bugreportAction =$scope.session.bugreportAction || '';
         break;
       case 'audio':
        
@@ -170,8 +173,11 @@ $scope.frameRate = $scope.session.video.frameRate || '30';
       case 'logcatLogs':
         $scope.session.logcatLogs.visible = true;
         break;
-      case 'bugreportAction':
+      case 'bugreport':
+        $scope.session.bugreportAction = $scope.bugreportAction;
+        console.log($scope.bugreportAction,"QWERTYUIOUYTRFDESASDFGHJKLJHGFDSASDFGHJK")
         $scope.session.bugreportAction.visible = true;
+        console.log("BUGREPORT IS SAVED")
         break;
       case 'audio':
         $scope.session.audio.visible = true;
@@ -193,20 +199,22 @@ $scope.frameRate = $scope.session.video.frameRate || '30';
         };
         break;
       case 'video':
-        $scope.frameRate = '30';
+        $scope.frameRate = '15';
         $scope.session.video = {
-          frameRate: '',
+          frameRate: '15',
           visible: false
         };
         break;
       case 'logcatLogs':
         
         break;
-      case 'bugreportAction':
-       $scope.session.bugreportAction = {
-        bugreportAction:'continue',
-       visible:false
-       };
+      case 'bugreport':
+        $scope.session.bugreportAction = 'continue';
+        $scope.bugreportAction='continue';
+       // $scope.session.bugreportAction = {
+          //bugreportAction: 'continue',
+          //visible: false
+        //};
         break;
       case 'audio':
         
@@ -215,7 +223,26 @@ $scope.frameRate = $scope.session.video.frameRate || '30';
  
     alert('Customization cleared successfully!');
     $scope.initializeSession();
-  };  
+  };
+  
+  $scope.clearCustomization_1 = function()
+  {
+    console.log("clearing all the data")
+    
+    $scope.session.testCaseID="";
+    console.log("clearing all the data",$scope.session.testCaseID)
+    
+    $scope.session.description="";
+    
+    $scope.initializeSession();
+    $scope.selectedMaskFile = $scope.maskFiles[0];
+    $scope.packets = '';
+    $scope.session.radioLogs = {
+      maskFile: null,
+      packets: '',
+      visible: false
+  }
+}
   
   $scope.toggleStartStop = function() {
     $scope.isRunning = !$scope.isRunning;
@@ -224,7 +251,7 @@ $scope.frameRate = $scope.session.video.frameRate || '30';
     if (!$scope.isRunning) {
       $scope.checkboxes = {
         logcatLogs: false,
-        bugreport: false,
+        bugreportAction: false,
         radioLogs: false,
         video: false,
         audio: false
@@ -339,42 +366,41 @@ $scope.frameRate = $scope.session.video.frameRate || '30';
     }
   } */
  
-    $scope.startTestAssist = function () {
-      if ($scope.session.testCaseID) {
-        
-        
-        // Prepare the data to send
-        var testData = {
-          testCaseID: $scope.session.testCaseID,
-          description: $scope.session.description,
-          logcatLogs: $scope.checkboxes.logcatLogs ? $scope.currentCustomization.logcatLogs : null,
-          bugreport: $scope.checkboxes.bugreport ? $scope.currentCustomization.bugreport : null,
-          qxdm: $scope.checkboxes.radioLogs ? $scope.currentCustomization.radioLogs : null,
-          video: $scope.checkboxes.video ? $scope.currentCustomization.video : null,
-          audio: $scope.checkboxes.audio ? $scope.currentCustomization.audio : null
-        };
-        console.log("started")
-     
-        $scope.control.startTestAssist(testData.testCaseID, $scope.serviceCommands.map(cmd => cmd.interval))
-          .then(function (result) {
-            $scope.isRunning = true;
-            console.log("inside control.startAssist")
-            if (result.body) {
-              $scope.session = result.body;
-              if (result.body.bugreports && result.body.bugreports.status == "discarding") {
-                $scope.bugreportData.status = 'discarding';
-              }
+    $scope.startTestAssist = function() {
+    if ($scope.session.testCaseID) {
+      // Prepare the data to send
+      console.log("description",$scope.session.description)
+      var testData = {
+        testCaseID: $scope.session.testCaseID,
+        description: $scope.session.description,
+        logcatLogs: $scope.checkboxes.logcatLogs ? $scope.session.logcatLogs : null,
+        bugreport: $scope.checkboxes.bugreport ? $scope.session.bugreportAction : null,
+        radioLogs: $scope.checkboxes.radioLogs ? $scope.session.radioLogs : null,
+        video: $scope.checkboxes.video ? $scope.session.video : null,
+        audio: $scope.checkboxes.audio ? $scope.session.audio : null
+      };
+ 
+      console.log("Starting Test Assist with data:", testData.description);
+ 
+      /* $scope.control.startTestAssist(testData.testCaseID, $scope.serviceCommands.map(cmd => cmd.interval))
+        .then(function(result) {
+          $scope.isRunning = true;
+          if (result.body) {
+            $scope.session = result.body;
+            if (result.body.bugreports && result.body.bugreports.status == "discarding") {
+              $scope.bugreportData.status = 'discarding';
+              console.log(result.body,"ertyuiouytryuiyhtgfhjhgfh")
             }
-          })
-          .catch(function (err) {
-            console.error(`Error starting test execution: ${err.message}`);
-          }).finally(function () {
-            $scope.pending = false;
-          
-          });
-      }
-    };
-
+          }
+          console.log(result.body,"wqertyuiouytdffghvbn")
+        })
+        .catch(function(err) {
+          console.error(`Error starting test execution: ${err.message}`);
+        }).finally(function() {
+          $scope.pending = false;
+        }); */
+    }
+  };
   /* $scope.stopTestAssist = function () {
     $scope.pending = true
     $scope.control.stopTestAssist()
