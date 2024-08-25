@@ -2,6 +2,9 @@
 * Copyright © 2019 code initially contributed by Orange SA, authors: Denis Barbaron - Licensed under the Apache license 2.0
 **/
 
+const _ = require('lodash')
+
+
 module.exports = function ManualTestAssistCtrl(
   $scope,
   $routeParams,
@@ -343,86 +346,52 @@ module.exports = function ManualTestAssistCtrl(
         
   
   }
-      
-
-  /* $scope.startTestAssist = function () {
-    if (!!$scope.testCaseID) {
-      $scope.pending = true
-      $scope.control.startTestAssist($scope.testCaseID, $scope.serviceCommands.map(cmd => cmd.interval))
-        .then(function (result) {
-          $scope.isGenerating = true
-          if (result.body) {
-            $scope.session = result.body
-            if (result.body.bugreports && result.body.bugreports.status == "discarding") {
-              $scope.bugreportData.status = 'discarding'
-            }
-          }
-        })
-        .catch(function (err) {
-          console.error(`Error starting test execution: ${err.message}`)
-        }).finally(function () {
-          $scope.pending = false
-        })
-    }
-  } */
  
     $scope.startTestAssist = function() {
-    if ($scope.session.testCaseID) {
-      // Prepare the data to send
-      console.log("description",$scope.session.description)
-      var testData = {
-        testCaseID: $scope.session.testCaseID,
-        description: $scope.session.description,
-        logcatLogs: $scope.checkboxes.logcatLogs ? $scope.session.logcatLogs : null,
-        bugreport: $scope.checkboxes.bugreport ? $scope.session.bugreportAction : null,
-        radioLogs: $scope.checkboxes.radioLogs ? $scope.session.radioLogs : null,
-        video: $scope.checkboxes.video ? $scope.session.video : null,
-        audio: $scope.checkboxes.audio ? $scope.session.audio : null
-      };
- 
-      console.log("Starting Test Assist with data:", testData.description);
- 
-      /* $scope.control.startTestAssist(testData.testCaseID, $scope.serviceCommands.map(cmd => cmd.interval))
-        .then(function(result) {
-          $scope.isRunning = true;
-          if (result.body) {
-            $scope.session = result.body;
-            if (result.body.bugreports && result.body.bugreports.status == "discarding") {
-              $scope.bugreportData.status = 'discarding';
-              console.log(result.body,"ertyuiouytryuiyhtgfhjhgfh")
-            }
-          }
-          console.log(result.body,"wqertyuiouytdffghvbn")
-        })
-        .catch(function(err) {
-          console.error(`Error starting test execution: ${err.message}`);
-        }).finally(function() {
-          $scope.pending = false;
-        }); */
-    }
+      if ($scope.session.testCaseID) {
+          console.log("description", $scope.session.description);
+   
+          
+          var logs = {};
+          if ($scope.checkboxes.logcatLogs) logs.logcatLogs = $scope.session.logcatLogs;
+          if ($scope.checkboxes.bugreport) logs.bugreport = $scope.session.bugreportAction;
+          if ($scope.checkboxes.radioLogs) logs.radioLogs = $scope.session.radioLogs;
+          if ($scope.checkboxes.video) logs.video = $scope.session.video;
+          if ($scope.checkboxes.audio) logs.audio = $scope.session.audio;
+   
+          var testData = {
+              testCaseID: $scope.session.testCaseID,
+              description: $scope.session.description,
+              logs: logs
+          };
+   
+          console.log("Starting Test Assist with data:", testData);
+   
+          
+          $scope.control.startTestAssist(testData)
+              .then(function(result) {
+                  $scope.isRunning = true;
+                  console.log(result.body,"result is coming in the body................")
+                  if (result.body) {
+                      $scope.session = result.body;
+                      /* if (result.body.bugreports && result.body.bugreports.status == "discarding") {
+                          $scope.bugreportData.status = 'discarding';
+                          console.log(result.body, "Bugreport status updated");
+                      } */
+                          console.log(result.body, "Session started");
+                  }
+                  console.log(result.body, "Session started");
+              })
+              .catch(function(err) {
+                  console.error(`Error starting test execution: ${err.message}`);
+              })
+              .finally(function() {
+                console.log("finally ke andar aaya ")
+                  $scope.pending = false;
+              });
+      }
   };
-  /* $scope.stopTestAssist = function () {
-    $scope.pending = true
-    $scope.control.stopTestAssist()
-      .then(function (result) {
-        if (result.body) {
-          $scope.session = result.body
-          if (result.body.bugreports && result.body.bugreports.status == "discarding") {
-            $scope.bugreportData.status = 'discarding'
-          }
-          $scope.screenshots = []
-        }
-        return getTestAssistHistory()
-      })
-      .catch(function (err) {
-        console.error(`Error stopping test execution: ${err.message}`)
-      }).finally(function () {
-        $scope.isGenerating = false
-        $scope.pending = false
-        $scope.optInBugreport = false
-      })
-  } */
- 
+  
       $scope.stopTestAssist = function () {
         
         $scope.control.stopTestAssist()
@@ -446,17 +415,7 @@ module.exports = function ManualTestAssistCtrl(
           });
       };
       
-      $scope.updateRadioLogs = function() {
-        $scope.session.radioLogs.maskFile = $scope.selectedMaskFile;
-        $scope.session.radioLogs.packets = $scope.packets;
-      };
-       
-      $scope.updateVideoSettings = function() {
-      $scope.session.video.frameRate = $scope.frameRate;
-      };
-      
-      
-      
+ 
 
   $scope.startBugreportCapture = function () {
     $scope.pendingBugreport = true
