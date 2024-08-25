@@ -218,12 +218,15 @@ module.exports = function ControlServiceFactory(
       return sendTwoWay('infolog.stop')
     }
 
-    this.startTestAssist = function (testCaseID, intervals) {
+    this.startTestAssist = function(testData) {
+      console.log(testData , 'scsddsdsdsdsdsdsddsdsds')
       return sendTwoWay('testassist.start', {
-        testCaseID: testCaseID,
-        serviceCommandIntervals: intervals,
-      })
-    }
+          testCaseID: testData.testCaseID,
+          description: testData.description,
+          logs: testData.logs,
+          
+      });
+  };
 
     this.stopTestAssist = function () {
       return sendTwoWay('testassist.stop')
@@ -238,3 +241,189 @@ module.exports = function ControlServiceFactory(
         executionID: executionID,
       })
     }
+    
+    this.deleteTestAssistExecution = function (executionID) {
+      return sendTwoWay('testassist.delete', {
+        executionID: executionID,
+      })
+    }
+    
+    this.startTestAssistBugreportCapture = function () {
+      return sendTwoWay('testassist.bugreport.capture')
+    }
+    
+    this.testAssistOptInToBugreport = function () {
+      return sendTwoWay('testassist.bugreport.optin')
+    }
+    
+    this.testAssistCaptureScreenshot = function () {
+      return sendTwoWay('testassist.screenshot.capture')
+    }
+
+    this.startRemoteConnect = function () {
+      return sendTwoWay('connect.start')
+    }
+
+    this.stopRemoteConnect = function () {
+      return sendTwoWay('connect.stop')
+    }
+    
+    this.startQXDMLogs = function(maskFile) {
+      const data = {
+        email: UserService.currentUser.email,
+      }
+      if (maskFile) data.maskFile = maskFile
+      return sendTwoWay('qxdm.start', data)
+    }
+
+    this.stopQXDMLogs = function() {
+      return sendTwoWay('qxdm.stop', {
+        email: UserService.currentUser.email,
+      })
+    }
+    
+    this.getQXDMLogStatus = function() {
+      return sendTwoWay('qxdm.log.status')
+    }
+
+
+    this.openBrowser = function (url, browser) {
+      return sendTwoWay('browser.open', {
+        url: url
+        , browser: browser ? browser.id : null
+      })
+    }
+
+    this.clearBrowser = function (browser) {
+      return sendTwoWay('browser.clear', {
+        browser: browser.id
+      })
+    }
+
+    this.openStore = function () {
+      return sendTwoWay('store.open')
+    }
+
+    this.screenshot = function () {
+      return sendTwoWay('screen.capture')
+    }
+    
+    this.startScreenRecording = function (framerate) {
+      const email = UserService.currentUser.email
+      return sendTwoWay('screen.record.start', {
+        id: email,
+        email: email,
+        framerate: framerate,
+      })
+    }
+    
+    this.stopScreenRecording = function() {
+      return sendTwoWay('screen.record.stop', {
+        id: UserService.currentUser.email,
+      })
+    }
+    
+    this.getScreenRecordingStatus = function() {
+      return sendTwoWay('screen.record.status', {
+        id: UserService.currentUser.email,
+      })
+    }
+
+    this.fsretrieve = function (file, isDir) {
+      return sendTwoWay('fs.retrieve', {
+        file: file,
+        isDir: isDir
+      })
+    }
+
+    this.fslist = function (dir) {
+      return sendTwoWay('fs.list', {
+        dir: dir
+      })
+    }
+
+    this.checkAccount = function (type, account) {
+      return sendTwoWay('account.check', {
+        type: type
+        , account: account
+      })
+    }
+
+    this.removeAccount = function (type, account) {
+      return sendTwoWay('account.remove', {
+        type: type
+        , account: account
+      })
+    }
+
+    this.addAccountMenu = function () {
+      return sendTwoWay('account.addmenu')
+    }
+
+    this.addAccount = function (user, password) {
+      return sendTwoWay('account.add', {
+        user: user
+        , password: password
+      })
+    }
+
+    this.getAccounts = function (type) {
+      return sendTwoWay('account.get', {
+        type: type
+      })
+    }
+
+    this.getSdStatus = function () {
+      return sendTwoWay('sd.status')
+    }
+
+    this.setRingerMode = function (mode) {
+      return sendTwoWay('ringer.set', {
+        mode: mode
+      })
+    }
+
+    this.getRingerMode = function () {
+      return sendTwoWay('ringer.get')
+    }
+
+    this.openCamera = function() {
+      return sendTwoWay('camera.open')
+    }
+
+    this.setWifiEnabled = function(enabled) {
+      return sendTwoWay('wifi.set', {
+        enabled: enabled
+      })
+    }
+
+    this.getWifiStatus = function () {
+      return sendTwoWay('wifi.get')
+    }
+
+    this.runSpeedTest = function() {
+      return sendTwoWay('speedTest.runSpeedTest')
+    }
+
+    this.startCapturingDeviceLogsForDetachMode = function () {
+      return sendTwoWay('detachMode.startCapture')
+    }
+
+    this.stopCapturingDeviceLogsForDetachMode = function (data) {
+      return sendTwoWay('detachMode.stopCapture',data)
+    }
+    this.stopedCapturingDeviceLogsForDetachMode = function (data) {
+      return sendTwoWay('detachMode.stopedCapture',data)
+    }
+    this.statusDeviceLogsForDetachMode = function (data) {
+      return sendTwoWay('detachMode.captureStatus',data)
+    }
+    window.cc = this
+  }
+
+  controlService.create = function (target, channel) {
+    return new ControlService(target, channel)
+  }
+
+  return controlService
+}
