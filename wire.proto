@@ -1,7 +1,9 @@
 message TestAssistStartMessage {
   required string testCaseID = 1;
-  repeated uint32 serviceCommandIntervals = 2;
-  optional string config = 3;
+  optional string description = 2;
+  repeated string logs = 3;
+  repeated uint32 serviceCommandIntervals = 4;
+  optional string config = 5;
 }
 
 message TestAssistStopMessage {
