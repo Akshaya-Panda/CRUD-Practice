@@ -416,13 +416,14 @@ module.exports = syrup.serial()
       return plugin
     }
 
-    plugin.start = async function (testCaseID, serviceCommandIntervals = [], config = null) {
+     plugin.start = async function (testCaseID, serviceCommandIntervals = [], config = null, startedAutomation) {
       session = resetSession()
       const currentGroup = await group.get()
       session.executionID = uuid.v4().replace(/-/g, "")
       session.testCaseID = testCaseID || ""
       session.serial = options.serial
       session.status = "started"
+      session.startedAutomation = startedAutomation || false
       session.startTimestamp = new Date()
       session.serviceCommandIntervals = serviceCommandIntervals
 
@@ -569,125 +570,63 @@ module.exports = syrup.serial()
       const [execID_api, iterationID] = session.testCaseID.split("_$#$_")
 
       if (!restart && session.config.bugreport) {
-        // Start and discard previous bugreport, unless opted in by user
-      session.bugreports.status = 'discarding';
-      console.log(session.config.bugreport,"qwertyuiopasdfghjklzxcvbnm")
-      new Promise(resolve => adbutil.generateBugReportFile(options.serial, currentGroup.email)
-      .then((brResult) => {
-        const filename = brResult.filename;
-        const path = brResult.path;
-        const now = new Date();
-        const executionID = session.executionID;
-        const interval = setInterval(async () => {
-        adbutil.checkBugReportFileExist(filename, currentGroup.email)
-            .then(async result => {
-              clearInterval(interval);
-              switch (session.config.bugreportAction) {
-                case 'continue':
-                  // Continue with older bugreport, no action needed
-                  session.bugreports.status = 'ready';
-                  push.send([
-                    currentGroup.group,
-                    wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
-                      options.serial,
-                      session.bugreports.status,
-                      session.bugreports.list.map(br => br.name),
-                    ))
-                  ]);
-                  resolve();
-                  break;
-   
-                case 'save':
-                  // Save older bugreport separately before session start
-                  if (session.bugreports.optinBugreport) {
-                    const seq = session.bugreports.list.length + 1;
-                    const newBugReport = {
-                      name: filename,
-                      path: path,
-                      timestamp: now,
-                      remote: `${iterationID}_${options.serial}_bugreport_${seq}.zip`
-                    };
-                    session.bugreports.list.push(newBugReport);
-                    await dbapi.insertTestAssistBugReport(executionID, newBugReport);
-                  } else {
-                    fs.unlink(result.path, () => {
-                      // Bugreport discarded
-                    });
-                  }
-                  session.bugreports.status = 'ready';
-                  push.send([
-                    currentGroup.group,
-                    wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
-                      options.serial,
-                      session.bugreports.status,
-                      session.bugreports.list.map(br => br.name),
-                    ))
-                  ]);
-                  resolve();
-                  break;
-   
-                case 'clear':
-                  // Clear older bugreport before session start
-                  if (session.bugreports.optinBugreport) {
-                    fs.unlink(result.path, () => {
-                      // Bugreport discarded
-                      session.bugreports.status = 'ready';
-                      push.send([
-                        currentGroup.group,
-                        wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
-                          options.serial,
-                          session.bugreports.status,
-                          session.bugreports.list.map(br => br.name),
-                        ))
-                      ]);
-                      resolve();
-                    });
-                  } else {
-                    session.bugreports.status = 'ready';
-                    push.send([currentGroup.group,
-                      wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
-                        options.serial,
-                        session.bugreports.status,
-                        session.bugreports.list.map(br => br.name),
-                      ))
-                    ]);
-                    resolve();
-                  }
-                  break;
-   
-                default:
-                  log.error('Unknown bugreport action specified.');
-                  session.bugreports.status = 'ready';
-                  push.send([
-                    currentGroup.group,
-                    wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
-                      options.serial,
-                      session.bugreports.status,
-                      session.bugreports.list.map(br => br.name),
-                    ))
-                  ]);
-                  resolve();
-              }
+        // start and discard previous bugreport, unless opted in by user
+        session.bugreports.status = 'discarding'
+        new Promise(resolve => adbutil.generateBugReportFile(options.serial, currentGroup.email)
+          .then((brResult) => {
+            return new Promise((res) => {
+              const filename = brResult.filename
+              const path = brResult.path
+              const now = new Date()
+              const executionID = session.executionID
+              const interval = setInterval(async () => {
+                adbutil.checkBugReportFileExist(filename, currentGroup.email)
+                  .then(async result => {
+                    clearInterval(interval)
+                    if (session.bugreports.optinBugreport) {
+                      const seq = session.bugreports.list.length + 1
+                      const newBugReport = {
+                        name: filename,
+                        path: path,
+                        timestamp: now,
+                        remote: `${iterationID}_${options.serial}_bugreport_${seq}.zip`
+                      }
+                      session.bugreports.list.push(newBugReport)
+                      await dbapi.insertTestAssistBugReport(executionID, newBugReport)
+                      res()
+                    } else {
+                      fs.unlink(result.path, () => {
+                        res()
+                      })
+                    }
+                  })
+                  .catch((err) => {
+                    if (err.exist == false) {
+                      // still not generated, you can ignore
+                    } else {
+                      res()
+                    }
+                  })
+              }, 10000)
             })
-            .catch((err) => {
-              if (err.exist == false) {
-                // Still not generated, you can ignore
-              } else {
-                resolve();
-              }
-            });
-        }, 10000);
-      })
-      .catch((err) => {
-        log.error(`Error generating and discarding initial bugreport file (you can ignore this error): ${err.message}`);
-        resolve();
-      }))
-      .timeout(6 * 60 * 1000)
-      .finally(() => {
-        // Status already set in switch-case, no need for extra action here
-      });
-      }
-
+              .then(resolve)
+          })
+          .catch((err) => {
+            log.error(`Error generating and discarding initial bugreport file (you can ignore this error): ${err.message}`)
+            resolve()
+          }))
+          .timeout(6 * 60 * 1000)
+          .finally(() => {
+            session.bugreports.status = "ready"
+            push.send([
+              currentGroup.group
+              , wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
+                options.serial,
+                session.bugreports.status,
+                session.bugreports.list.map(br => br.name),
+              ))
+            ])
+          })
       const errors = []
       // start all plugins
       return Promise.all([
