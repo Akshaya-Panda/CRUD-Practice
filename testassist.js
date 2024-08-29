@@ -489,7 +489,7 @@ module.exports = syrup.serial()
       return _start(prevGroup, true)
     }
 
-    const _start = async function (currentGroup, restart = false) {
+   const _start = async function (currentGroup, restart = false) {
       const logcatHandler = (entry) => {
         // handle logcat messages
         session.logcatEntriesQueue.push(entry.raw)
@@ -570,63 +570,126 @@ module.exports = syrup.serial()
       const [execID_api, iterationID] = session.testCaseID.split("_$#$_")
 
       if (!restart && session.config.bugreport) {
-        // start and discard previous bugreport, unless opted in by user
-        session.bugreports.status = 'discarding'
+        // Start and discard previous bugreport, unless opted in by user
+        switch (session.config.bugreport) {
+          case 'clear':
+            // Logic for 'clear' option
+            session.bugreports.status = 'discarding'
         new Promise(resolve => adbutil.generateBugReportFile(options.serial, currentGroup.email)
-          .then((brResult) => {
-            return new Promise((res) => {
-              const filename = brResult.filename
-              const path = brResult.path
-              const now = new Date()
-              const executionID = session.executionID
-              const interval = setInterval(async () => {
-                adbutil.checkBugReportFileExist(filename, currentGroup.email)
-                  .then(async result => {
-                    clearInterval(interval)
-                    if (session.bugreports.optinBugreport) {
-                      const seq = session.bugreports.list.length + 1
-                      const newBugReport = {
-                        name: filename,
-                        path: path,
-                        timestamp: now,
-                        remote: `${iterationID}_${options.serial}_bugreport_${seq}.zip`
-                      }
-                      session.bugreports.list.push(newBugReport)
-                      await dbapi.insertTestAssistBugReport(executionID, newBugReport)
-                      res()
-                    } else {
-                      fs.unlink(result.path, () => {
+              .then((brResult) => {
+                return new Promise((res) => {
+                  const filename = brResult.filename
+                  const path = brResult.path
+                  const now = new Date()
+                  const executionID = session.executionID
+                  const interval = setInterval(async () => {
+        adbutil.checkBugReportFileExist(filename, currentGroup.email)
+                      .then(async result => {
+                        clearInterval(interval)
+                        if (session.bugreports.optinBugreport) {
+                          const seq = session.bugreports.list.length + 1
+                          const newBugReport = {
+                            name: filename,
+                            path: path,
+                            timestamp: now,
+                            remote: `${iterationID}_${options.serial}_bugreport_${seq}.zip`
+                          }
+                          session.bugreports.list.push(newBugReport)
+                          await dbapi.insertTestAssistBugReport(executionID, newBugReport)
+                          res()
+                        } else {
+                          fs.unlink(result.path, () => {
+                            res()
+                          })
+                        }
+                      })
+                      .catch((err) => {
+                        if (err.exist == false) {
+                          // still not generated, you can ignore
+                        } else {
+                          res()
+                        }
+                      })
+                  }, 10000)
+                })
+                  .then(resolve)
+              })
+              .catch((err) => {
+                log.error(`Error generating and discarding initial bugreport file (you can ignore this error): ${err.message}`)
+                resolve()
+              }))
+              .timeout(6 * 60 * 1000)
+              .finally(() => {
+                session.bugreports.status = "ready"
+                push.send([
+        currentGroup.group
+                  , wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
+                    options.serial,
+                    session.bugreports.status,
+        session.bugreports.list.map(br => br.name),
+                  ))
+                ])
+              })
+            break;
+         
+          case 'save':
+            // Logic for 'save' option
+            session.bugreports.status = 'saving'
+        new Promise(resolve => adbutil.generateBugReportFile(options.serial, currentGroup.email)
+              .then((brResult) => {
+                return new Promise((res) => {
+                  const filename = brResult.filename
+                  const path = brResult.path
+                  const now = new Date()
+                  const executionID = session.executionID
+                  const interval = setInterval(async () => {
+        adbutil.checkBugReportFileExist(filename, currentGroup.email)
+                      .then(async result => {
+                        clearInterval(interval)
+                        const seq = session.bugreports.list.length + 1
+                        const newBugReport = {
+                          name: filename,
+                          path: path,
+                          timestamp: now,
+                          remote: `${iterationID}_${options.serial}_bugreport_${seq}.zip`
+                        }
+                        session.bugreports.list.push(newBugReport)
+                        await dbapi.insertTestAssistBugReport(executionID, newBugReport)
                         res()
                       })
-                    }
-                  })
-                  .catch((err) => {
-                    if (err.exist == false) {
-                      // still not generated, you can ignore
-                    } else {
-                      res()
-                    }
-                  })
-              }, 10000)
-            })
-              .then(resolve)
-          })
-          .catch((err) => {
-            log.error(`Error generating and discarding initial bugreport file (you can ignore this error): ${err.message}`)
-            resolve()
-          }))
-          .timeout(6 * 60 * 1000)
-          .finally(() => {
-            session.bugreports.status = "ready"
-            push.send([
-              currentGroup.group
-              , wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
-                options.serial,
-                session.bugreports.status,
-                session.bugreports.list.map(br => br.name),
-              ))
-            ])
-          })
+                      .catch((err) => {
+                        if (err.exist == false) {
+                          // still not generated, you can ignore
+                        } else {
+                          res()
+                        }
+                      })
+                  }, 10000)
+                })
+                  .then(resolve)
+              })
+              .catch((err) => {
+                log.error(`Error generating and saving bugreport file: ${err.message}`)
+                resolve()
+              }))
+              .timeout(6 * 60 * 1000)
+              .finally(() => {
+                session.bugreports.status = "ready"
+                push.send([
+        currentGroup.group
+                  , wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
+                    options.serial,
+                    session.bugreports.status,
+        session.bugreports.list.map(br => br.name),
+                  ))
+                ])
+              })
+            break;
+         
+          default:
+            break;
+        }
+      }
       const errors = []
       // start all plugins
       return Promise.all([
