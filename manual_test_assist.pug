@@ -11,7 +11,7 @@
         button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()')
           i.fa(ng-class="{'fa-play': !isRunning, 'fa-stop': isRunning}")
           span {{isRunning ? 'Stop' : 'Start'}}
-        button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization()")
+        button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization_1()")
           i.fa.fa-repeat
           span Clear
         //- button.btn.pull-right.btn-primary.btn-sm(ng-if="isRunning")
@@ -150,21 +150,21 @@
             //- select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
             //-   option(value='mask1') Sandstorm.dmc
             //-   option(value='mask2') Mask 2
-            select.form-control(ng-model="session.selectedMaskFile"
+            select.form-control(ng-model="session.config.selectedMaskFile"
               ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
               ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
-              ng-change="selectMaskFile()")
+              ng-change="selectMaskFile()" ng-disabled='isViewing')
           .form-group 
             label Packets 
-            input.form-control(type="text" ng-model="session.packets" ,ng-disabled='isViewing')
+            input.form-control(type="text" ng-model="session.config.packets" ,ng-disabled='isViewing')
         
         div(ng-if="logtype === 'video'")
           .form-group
             label frameRate 
-            select.form-control(ng-model='session.frameRate')
-              option(value='1') 15
-              option(value='2') 30
-              option(value='3') 35
+            select.form-control(ng-model='session.config.frameRate' ng-disabled='isViewing' ng-init="session.config.frameRate = session.config.frameRate||'15'" )
+              option(value='15') 15
+              option(value='30') 30
+              option(value='35') 35
         
         div(ng-if="logtype === 'bugreport'")
           .row
@@ -172,13 +172,13 @@
               .form-group
                 label BugReport Actions
                 .radio
-                  input(type="radio", name="bugreportAction", ng-model="session.bugreportAction", value="continue", ng-change="updateBugreportAction()")
+                  input(type="radio", name="bugreportAction", ng-model="session.config bugreportAction", value="continue", ng-change="updateBugreportAction()",ng-disabled='isViewing')
                   span Continue with older bugreport
                 .radio
-                  input(type="radio", name="bugreportAction", ng-model="session.bugreportAction", value="save", ng-change="updateBugreportAction()")
+                  input(type="radio", name="bugreportAction", ng-model="session.config.bugreportAction", value="save", ng-change="updateBugreportAction()",ng-disabled='isViewing')
                   span Save older bugreport before session start
                 .radio
-                  input(type="radio", name="bugrepoiortAction", ng-model="sessn.bugreportAction", value="clear", ng-change="updateBugreportAction()")
+                  input(type="radio", name="bugrepoiortAction", ng-model="session.config.bugreportAction", value="clear", ng-change="updateBugreportAction()",ng-disabled='isViewing')
                   span Clear older bugreport before session start
           
         
