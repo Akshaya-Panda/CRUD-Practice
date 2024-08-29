@@ -28,7 +28,7 @@ module.exports = function ManualTestAssistCtrl(
   $scope.screenshots = [];
   $scope.frameRate = "15";
   $scope.customLogName = "";
-  $scope.session = {
+ /*  $scope.session= {
     testCaseID: "",
     description: "",
     radioLogs: {
@@ -41,7 +41,23 @@ module.exports = function ManualTestAssistCtrl(
     logcatLogs: "",
     bugreport: "",
     audio: ""
-  };
+  }; */
+  $scope.session= {
+    testCaseID: "",
+    description: "",
+    config:{
+    radioLogs: {
+      maskFile: null,
+      packets: ""
+    },
+    video: {
+      frameRate: "15"
+    },
+    logcatLogs: "",
+    bugreport: "",
+    audio: ""
+  },
+};
   $scope.checkboxes = {
     logcatLogs: false,
     bugreport: false,
@@ -89,26 +105,26 @@ module.exports = function ManualTestAssistCtrl(
   $scope.maskFiles = [{ maskFile: "Default DMC", id: null }];
   $scope.selectedMaskFile = $scope.maskFiles[0];
   
-  $scope.session.bugreportAction = 'continue';
+  $scope.session.config.bugreportAction = 'continue';
   
   $scope.updateBugreportAction = function() {
-    $scope.bugreportAction = $scope.session.bugreportAction;
+    $scope.bugreportAction = $scope.session.config.bugreportAction;
   };
   
   $scope.initializeSession = function() {
     $scope.session = {
       testCaseID: $scope.session.testCaseID || '',
       description: $scope.session.description || '',
-      logcatLogs: $scope.session.logcatLogs || '',
-      bugreportAction: $scope.session.bugreportAction || '',
+      logcatLogs: $scope.session.config.logcatLogs || '',
+      bugreportAction: $scope.session.config.bugreportAction || '',
       radioLogs: {
-        maskFile: $scope.session.radioLogs.maskFile || null,
-        packets: $scope.session.radioLogs.packets || ''
+        maskFile: $scope.session.config.radioLogs.maskFile || null,
+        packets: $scope.session.config.radioLogs.packets || ''
       },
       video: {
-    frameRate: $scope.session.video.frameRate || '15'
+    frameRate: $scope.session.config.video.frameRate || '15'
       },
-    audio: $scope.session.audio || ''
+    audio: $scope.session.config.audio || ''
     };
   };
   
@@ -136,17 +152,17 @@ module.exports = function ManualTestAssistCtrl(
  
     switch(type) {
       case 'radioLogs':
-        $scope.selectedMaskFile = $scope.session.radioLogs.maskFile || $scope.maskFiles[0];
-        $scope.packets = $scope.session.radioLogs.packets || '';
+        $scope.selectedMaskFile = $scope.session.config.radioLogs.maskFile || $scope.maskFiles[0];
+        $scope.packets = $scope.session.config.radioLogs.packets || '';
         break;
       case 'video':
-        $scope.frameRate = $scope.session.video.frameRate || '15'; 
+        $scope.frameRate = $scope.session.config.video.frameRate || '15'; 
         break;
       case 'logcatLogs':
         
         break;
       case 'bugreport':
-        $scope.bugreportAction =$scope.session.bugreportAction || '';
+        $scope.bugreportAction =$scope.session.config.bugreportAction || '';
         break;
       case 'audio':
        
@@ -161,29 +177,29 @@ module.exports = function ManualTestAssistCtrl(
   $scope.saveCustomization = function() {
     switch($scope.logtype) {
       case 'radioLogs':
-        $scope.session.radioLogs = {
+        $scope.session.config.radioLogs = {
           maskFile: $scope.selectedMaskFile,
           packets: $scope.packets,
           visible: true
         };
         break;
       case 'video':
-          $scope.session.video = {
+          $scope.session.config.video = {
           frameRate: $scope.frameRate,
           visible: true
         };
         break;
       case 'logcatLogs':
-        $scope.session.logcatLogs.visible = true;
+        $scope.session.config.logcatLogs.visible = true;
         break;
       case 'bugreport':
-        $scope.session.bugreportAction = $scope.bugreportAction;
+        $scope.session.config.bugreportAction = $scope.bugreportAction;
         console.log($scope.bugreportAction,"QWERTYUIOUYTRFDESASDFGHJKLJHGFDSASDFGHJK")
         $scope.session.bugreportAction.visible = true;
         console.log("BUGREPORT IS SAVED")
         break;
       case 'audio':
-        $scope.session.audio.visible = true;
+        $scope.session.config.audio.visible = true;
         break;
     }
  
@@ -195,7 +211,7 @@ module.exports = function ManualTestAssistCtrl(
       case 'radioLogs':
         $scope.selectedMaskFile = $scope.maskFiles[0];
         $scope.packets = '';
-        $scope.session.radioLogs = {
+        $scope.session.config.radioLogs = {
           maskFile: null,
           packets: '',
           visible: false
@@ -203,7 +219,7 @@ module.exports = function ManualTestAssistCtrl(
         break;
       case 'video':
         $scope.frameRate = '15';
-        $scope.session.video = {
+        $scope.session.config.video = {
           frameRate: '15',
           visible: false
         };
@@ -212,7 +228,7 @@ module.exports = function ManualTestAssistCtrl(
         
         break;
       case 'bugreport':
-        $scope.session.bugreportAction = 'continue';
+        $scope.session.config.bugreportAction = 'continue';
         $scope.bugreportAction='continue';
        // $scope.session.bugreportAction = {
           //bugreportAction: 'continue',
@@ -259,10 +275,11 @@ module.exports = function ManualTestAssistCtrl(
         video: false,
         audio: false
       };
-      $scope.stopTestAssist=function(){
-      window.location.reload();}
-      $scope.showCustomizeButton = {};
-    }
+      $scope.stopTestAssist()
+      //window.location.reload();}
+     // $scope.showCustomizeButton = {};
+    
+  }
     else{
       $scope.startTestAssist();
       //$scope.initializeSession();
@@ -347,53 +364,59 @@ module.exports = function ManualTestAssistCtrl(
   
   }
  
-    $scope.startTestAssist = function() {
-      if ($scope.session.testCaseID) {
-          console.log("description", $scope.session.description);
+  $scope.startTestAssist = function() {
+    if ($scope.session.testCaseID) {
+      console.log("description", $scope.session.description);
+      console.log($scope.session.config.bugreportAction,"asdfghjkl")
    
+      
+      var logs = {};
+      if ($scope.checkboxes.logcatLogs) logs.logcatLogs = $scope.session.config.logcatLogs;
+      if ($scope.checkboxes.bugreport) logs.bugreport = $scope.session.config.bugreportAction;
+      if ($scope.checkboxes.radioLogs) logs.radioLogs = $scope.session.config.radioLogs;
+      if ($scope.checkboxes.video) logs.video = $scope.session.config.video;
+      if ($scope.checkboxes.audio) logs.audio = $scope.session.config.audio;
+   
+     
+      var testData = {
+        testCaseID: $scope.session.testCaseID,
+        description: $scope.session.description,
+        config: logs,
+        /* logs: logs */
+      };
+   
+      console.log("Starting Test Assist with data:", testData);
+   
+      
+      $scope.control.startTestAssist(testData)
+        .then(function(result) {
+          $scope.isRunning = true;
+          console.log(result.body, "result is coming in the body...");
           
-          var logs = {};
-          if ($scope.checkboxes.logcatLogs) logs.logcatLogs = $scope.session.logcatLogs;
-          if ($scope.checkboxes.bugreport) logs.bugreport = $scope.session.bugreportAction;
-          if ($scope.checkboxes.radioLogs) logs.radioLogs = $scope.session.radioLogs;
-          if ($scope.checkboxes.video) logs.video = $scope.session.video;
-          if ($scope.checkboxes.audio) logs.audio = $scope.session.audio;
    
-          var testData = {
-              testCaseID: $scope.session.testCaseID,
-              description: $scope.session.description,
-              logs: logs
-          };
+          if (result.body) {
+            $scope.session = result.body;
    
-          console.log("Starting Test Assist with data:", testData);
-   
-          
-          $scope.control.startTestAssist(testData)
-              .then(function(result) {
-                  $scope.isRunning = true;
-                  console.log(result.body,"result is coming in the body................")
-                  if (result.body) {
-                      $scope.session = result.body;
-                      /* if (result.body.bugreports && result.body.bugreports.status == "discarding") {
-                          $scope.bugreportData.status = 'discarding';
-                          console.log(result.body, "Bugreport status updated");
-                      } */
-                          console.log(result.body, "Session started");
-                  }
-                  console.log(result.body, "Session started");
-              })
-              .catch(function(err) {
-                  console.error(`Error starting test execution: ${err.message}`);
-              })
-              .finally(function() {
-                console.log("finally ke andar aaya ")
-                  $scope.pending = false;
-              });
-      }
+            if (result.body.bugreports && result.body.bugreports.status === "discarding") {
+              $scope.bugreportData.status = 'discarding';
+              console.log(result.body, "Bugreport status updated");
+            }
+            console.log(result.body, "Session started");
+          }
+        })
+        .catch(function(err) {
+          console.error(`Error starting test execution: ${err.message}`);
+        })
+        .finally(function() {
+          console.log("Execution finished.");
+          $scope.pending = false;
+        });
+    }
   };
   
       $scope.stopTestAssist = function () {
-        
+        console.log("STOPPED")
+        $scope.showCustomizeButton = {};
         $scope.control.stopTestAssist()
           .then(function (result) {
             console.log("stopped")
@@ -404,7 +427,7 @@ module.exports = function ManualTestAssistCtrl(
               }
               $scope.screenshots = [];
             }
-            return getTestAssistHistory();
+            //return getTestAssistHistory();
           })
           .catch(function (err) {
             console.error(`Error stopping test execution: ${err.message}`);
@@ -415,9 +438,12 @@ module.exports = function ManualTestAssistCtrl(
           });
       };
       
- 
+      $scope.updateBugreportAction = function() {
+        console.log("Bug report action selected:", $scope.session.config.bugreportAction);
+        
+      }
 
-  $scope.startBugreportCapture = function () {
+  /* $scope.startBugreportCapture = function () {
     $scope.pendingBugreport = true
     $scope.control.startTestAssistBugreportCapture()
       .then(function (result) {
@@ -436,7 +462,7 @@ module.exports = function ManualTestAssistCtrl(
       }).catch(function (err) {
         console.log(`Error opting in to bugreport: ${err.message}`)
       })
-  }
+  } */
 
   $scope.captureScreenshot = function () {
     $scope.isCapturingScreenshot = true
