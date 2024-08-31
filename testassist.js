@@ -685,7 +685,76 @@ module.exports = syrup.serial()
                 ])
               })
             break;
-         
+          case 'continue':
+            new Promise(resolve => {
+            adbutil.checkBugReportFileExist(session.bugreports.list[session.bugreports.list.length - 1].name, currentGroup.email)
+                  .then(async result => {
+                    if (result.exist) {
+                      // Existing bug report found, push it
+                      const bugReport = session.bugreports.list[session.bugreports.list.length - 1]
+                      const executionID = session.executionID
+                      await dbapi.insertTestAssistBugReport(executionID, bugReport)
+                      resolve()
+                    } else {
+                      // No existing bug report found, generate a new one
+                    adbutil.generateBugReportFile(options.serial, currentGroup.email)
+                        .then((brResult) => {
+                          return new Promise((res) => {
+                            const filename = brResult.filename
+                            const path = brResult.path
+                            const now = new Date()
+                            const executionID = session.executionID
+                            const interval = setInterval(async () => {
+                    adbutil.checkBugReportFileExist(filename, currentGroup.email)
+                                .then(async result => {
+                                  clearInterval(interval)
+                                 
+                                    const seq = session.bugreports.list.length + 1
+                                    const newBugReport = {
+                                      name: filename,
+                                      path: path,
+                                      timestamp: now,
+                                      remote: `${iterationID}_${options.serial}_bugreport_${seq}.zip`
+                                    }
+                                    session.bugreports.list.push(newBugReport)
+                                    await dbapi.insertTestAssistBugReport(executionID, newBugReport)
+                                    res()
+                                })
+                                .catch((err) => {
+                                  if (err.exist == false) {
+                                    
+                                  } else {
+                                    res()
+                                  }
+                                })
+                            }, 10000)
+                          })
+                          .then(resolve)
+                        })
+                        .catch((err) => {
+                          log.error(`Error generating and discarding initial bugreport file (you can ignore this error): ${err.message}`)
+                          resolve()
+                        })
+                    }
+                  })
+                  .catch((err) => {
+                    log.error(`Error checking for existing bug report file: ${err.message}`)
+                    resolve()
+                  })
+              })
+              .timeout(6 * 60 * 1000)
+              .finally(() => {
+                session.bugreports.status = "ongoing"
+                push.send([
+            currentGroup.group,
+                  wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
+                    options.serial,
+                    session.bugreports.status,
+            session.bugreports.list.map(br => br.name),
+                  ))
+                ])
+              })
+            break;
           default:
             break;
         }
