@@ -105,7 +105,7 @@ module.exports = syrup.serial()
         logcatStatus: null,
         percentage: 0,
         bugreports: {
-          optinBugreport: false,
+          //optinBugreport: false,
           status: session && session.bugreports && session.bugreports == 'generating' ? "generating" : "ready",
           list: [],
         },
