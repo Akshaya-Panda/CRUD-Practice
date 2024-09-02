@@ -579,12 +579,19 @@ module.exports = syrup.serial()
                 const now = new Date();
                 const executionID = session.executionID;
                 const interval = setInterval(async () => {
-                    adbutil.checkBugReportFileExist(filename, currentGroup.email)
+                    adbutil.checkBugReportFileExist(filename, currentGroup.email,path)
                     .then(async (result) => {
                       clearInterval(interval);
+                      console.log(result.path,"[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[")
+                      console.log(session.bugreports.list,"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
                       if (action === 'save' || (action === 'clear')) {
+                        console.log(action,"bhai kya action h @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                         if (action === 'clear'){
-                          fs.unlink(result.path, () => res());
+                          console.log(action,"CLEAR HOJA BHAI HATH JODTA HUN**********************************")
+                          //session.bugreports.list.forEach((file) => {                            
+                            fs.unlink(result.path, () => res());
+                        //  })
+                          session.bugreports.list.clear();
                         }
                         const seq = session.bugreports.list.length + 1;
                         const newBugReport = {
@@ -625,15 +632,21 @@ module.exports = syrup.serial()
                 session.bugreports.list.map((br) => br.name),
               )),
             ]);
+            
           });
       };
 
       if (!restart && session.config.bugreport) {
-        console.log(session.config.bugreport)
+        //console.log(session.config.bugreport,"((((((((((((((((((((((((((((((((((((((((((((((")
         if (session.config.bugreport === 'continue'){ 
           
           new Promise(resolve => {
-            adbutil.checkBugReportFileExist(session.bugreports.list[session.bugreports.list.length - 1].name, currentGroup.email)
+            console.log(session.bugreports.list,"(((((((((((((((((((((((((((((((((((((((((((((((((((((")
+            if(session.bugreports.list.length>0){
+              const bugReport = session.bugreports.list[session.bugreports.list.length - 1]
+              const executionID = session.executionID
+               dbapi.insertTestAssistBugReport(executionID, bugReport)
+            /* adbutil.checkBugReportFileExist(session.bugreports.list[session.bugreports.list.length-1].name, currentGroup.email)
                   .then(async result => {
                     if (result.exist) {
                       // Existing bug report found, push it
@@ -641,7 +654,9 @@ module.exports = syrup.serial()
                       const executionID = session.executionID
                       await dbapi.insertTestAssistBugReport(executionID, bugReport)
                       resolve()
-                    } else {
+                    } */
+                  }
+                    else {
                       // No existing bug report found, generate a new one
                     adbutil.generateBugReportFile(options.serial, currentGroup.email)
                         .then((brResult) => {
@@ -651,7 +666,7 @@ module.exports = syrup.serial()
                             const now = new Date()
                             const executionID = session.executionID
                             const interval = setInterval(async () => {
-                    adbutil.checkBugReportFileExist(filename, currentGroup.email)
+                            adbutil.checkBugReportFileExist(filename, currentGroup.email)
                                 .then(async result => {
                                   clearInterval(interval)
                                  
@@ -682,26 +697,38 @@ module.exports = syrup.serial()
                           resolve()
                         })
                     }
-                  })
+                 /*  })
                   .catch((err) => {
                     log.error(`Error checking for existing bug report file: ${err.message}`)
                     resolve()
-                  })
+                  }) */
               })
               .timeout(6 * 60 * 1000)
               .finally(() => {
                 session.bugreports.status = "ongoing"
                 push.send([
-            currentGroup.group,
+                  currentGroup.group,
                   wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
                     options.serial,
                     session.bugreports.status,
-            session.bugreports.list.map(br => br.name),
+                   session.bugreports.list.map(br => br.name),
                   ))
                 ])
+                console.log(session.bugreports.list,"LIST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                console.log(session,"))))))))))))))))))))))))))))))))))))))))))))))))))))))))")
               })
+              
           
-        } else {
+          /* session.bugreports.status = "ongoing"; 
+          push.send([
+            currentGroup.group,
+            wireutil.envelope(new wire.TestAssistBugReportStatusMessage(
+              options.serial,
+              session.bugreports.status,
+              session.bugreports.list.map((br) => br.name),
+            )),
+          ]); */
+                   }       else {
           
           session.bugreports.status = session.config.bugreport === 'clear' ? 'discarding' : 'save';
           handleBugReport(session.config.bugreport);
