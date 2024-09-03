@@ -46,7 +46,7 @@ module.exports = function ManualTestAssistCtrl(
     testCaseID: "",
     description: "",
     config:{
-    radioLogs: {
+    qxdm: {
       maskFile: null,
       packets: ""
     },
@@ -61,20 +61,20 @@ module.exports = function ManualTestAssistCtrl(
   $scope.checkboxes = {
     logcatLogs: false,
     bugreport: false,
-    radioLogs: false,
+    qxdm: false,
     video: false,
     audio: false,
   };
   $scope.showCustomizeButton = {
     logcatLogs: false,
     bugreport: false,
-    radioLogs: false,
+    qxdm: false,
     video: false,
     audio: false,
   };
   
   $scope.currentCustomization = {
-    radioLogs: {
+    qxdm: {
       maskFile: null,
       packets: '',
       visible: false
@@ -117,9 +117,9 @@ module.exports = function ManualTestAssistCtrl(
       description: $scope.session.description || '',
       logcatLogs: $scope.session.config.logcatLogs || '',
       bugreportAction: $scope.session.config.bugreportAction || '',
-      radioLogs: {
-        maskFile: $scope.session.config.radioLogs.maskFile || null,
-        packets: $scope.session.config.radioLogs.packets || ''
+      qxdm: {
+        maskFile: $scope.session.config.qxdm.maskFile || null,
+        packets: $scope.session.config.qxdm.packets || ''
       },
       video: {
     frameRate: $scope.session.config.video.frameRate || '15'
@@ -151,9 +151,9 @@ module.exports = function ManualTestAssistCtrl(
     $scope.showLogscatPanel = true;
  
     switch(type) {
-      case 'radioLogs':
-        $scope.selectedMaskFile = $scope.session.config.radioLogs.maskFile || $scope.maskFiles[0];
-        $scope.packets = $scope.session.config.radioLogs.packets || '';
+      case 'qxdm':
+        $scope.selectedMaskFile = $scope.session.config.qxdm.maskFile || $scope.maskFiles[0];
+        $scope.packets = $scope.session.config.qxdm.packets || '';
         break;
       case 'video':
         $scope.frameRate = $scope.session.config.video.frameRate || '15'; 
@@ -176,8 +176,8 @@ module.exports = function ManualTestAssistCtrl(
   
   $scope.saveCustomization = function() {
     switch($scope.logtype) {
-      case 'radioLogs':
-        $scope.session.config.radioLogs = {
+      case 'qxdm':
+        $scope.session.config.qxdm = {
           maskFile: $scope.selectedMaskFile,
           packets: $scope.packets,
           visible: true
@@ -193,9 +193,9 @@ module.exports = function ManualTestAssistCtrl(
         $scope.session.config.logcatLogs.visible = true;
         break;
       case 'bugreport':
-        $scope.session.config.bugreportAction = $scope.bugreportAction;
+        $scope.bugreportAction = $scope.session.config.bugreportAction  ;
         console.log($scope.bugreportAction,"QWERTYUIOUYTRFDESASDFGHJKLJHGFDSASDFGHJK")
-        $scope.session.bugreportAction.visible = true;
+        $scope.session.config.bugreportAction.visible = true;
         console.log("BUGREPORT IS SAVED")
         break;
       case 'audio':
@@ -208,10 +208,10 @@ module.exports = function ManualTestAssistCtrl(
   
   $scope.clearCustomization = function() {
     switch($scope.logtype) {
-      case 'radioLogs':
+      case 'qxdm':
         $scope.selectedMaskFile = $scope.maskFiles[0];
         $scope.packets = '';
-        $scope.session.config.radioLogs = {
+        $scope.session.config.qxdm = {
           maskFile: null,
           packets: '',
           visible: false
@@ -256,7 +256,7 @@ module.exports = function ManualTestAssistCtrl(
     $scope.initializeSession();
     $scope.selectedMaskFile = $scope.maskFiles[0];
     $scope.packets = '';
-    $scope.session.radioLogs = {
+    $scope.session.qxdm = {
       maskFile: null,
       packets: '',
       visible: false
@@ -271,7 +271,7 @@ module.exports = function ManualTestAssistCtrl(
       $scope.checkboxes = {
         logcatLogs: false,
         bugreportAction: false,
-        radioLogs: false,
+        qxdm: false,
         video: false,
         audio: false
       };
@@ -282,6 +282,7 @@ module.exports = function ManualTestAssistCtrl(
   }
     else{
       $scope.startTestAssist();
+      
       //$scope.initializeSession();
       
     }
@@ -309,7 +310,7 @@ module.exports = function ManualTestAssistCtrl(
       }).finally(function () {
         $scope.allPending = false
       })
-      console.log($scope.device.qxdm.maskFiles,"console ke bahar wala hun mein")
+      console.log($scope.device.qxdm,"console ke bahar wala hun mein")
       
   }
   
@@ -373,7 +374,7 @@ module.exports = function ManualTestAssistCtrl(
       var logs = {};
       if ($scope.checkboxes.logcatLogs) logs.logcatLogs = $scope.session.config.logcatLogs;
       if ($scope.checkboxes.bugreport) logs.bugreport = $scope.session.config.bugreportAction;
-      if ($scope.checkboxes.radioLogs) logs.radioLogs = $scope.session.config.radioLogs;
+      if ($scope.checkboxes.qxdm) logs.qxdm = $scope.session.config.qxdm;
       if ($scope.checkboxes.video) logs.video = $scope.session.config.video;
       if ($scope.checkboxes.audio) logs.audio = $scope.session.config.audio;
    
@@ -395,7 +396,8 @@ module.exports = function ManualTestAssistCtrl(
           
    
           if (result.body) {
-            $scope.session = result.body;
+            getTestAssistStatus();
+            //$scope.session = result.body;
    
             if (result.body.bugreports && result.body.bugreports.status === "discarding") {
               $scope.bugreportData.status = 'discarding';
@@ -417,6 +419,7 @@ module.exports = function ManualTestAssistCtrl(
       $scope.stopTestAssist = function () {
         console.log("STOPPED")
         $scope.showCustomizeButton = {};
+        $scope.updateCustomizeButton();
         $scope.control.stopTestAssist()
           .then(function (result) {
             console.log("stopped")
