@@ -48,7 +48,10 @@ module.exports = function ManualTestAssistCtrl(
     config:{
     qxdm: {
       maskFile: null,
-      packets: ""
+      packets: "",
+      qxdmOption: "maskFile",
+      selectedMaskFile: null,
+      
     },
     video: {
       frameRate: "15"
@@ -102,14 +105,17 @@ module.exports = function ManualTestAssistCtrl(
   $scope.frameRate = '';
   $scope.showCustomizeButton = {};
   $scope.isViewing = false;
-  $scope.maskFiles = [{ maskFile: "Default DMC", id: null }];
+  $scope.maskFiles = [{ maskFile: "Default DMC"} ];
   $scope.selectedMaskFile = $scope.maskFiles[0];
   
   $scope.session.config.bugreportAction = 'continue';
+  $scope.session.config.qxdmOption = 'maskFile'
   
   $scope.updateBugreportAction = function() {
     $scope.bugreportAction = $scope.session.config.bugreportAction;
   };
+  
+  
   
   $scope.initializeSession = function() {
     $scope.session = {
@@ -145,6 +151,25 @@ module.exports = function ManualTestAssistCtrl(
     $scope.showCustomizeButton[checkboxKey] = $scope.checkboxes[checkboxKey];
   };
   
+  $scope.updateQxdmSelection = function(device) {
+    if ($scope.session.config.qxdm.qxdmOption === 'maskFile') {
+     
+      // Set the mask file to the default or previously selected mask file
+      $scope.session.config.qxdm.selectedMaskFile =  ([$scope.maskFiles[0],...device.qxdm.maskFiles.map(item => item.maskFile)] || []) ;
+      $scope.session.config.qxdm.packets = '';  // Clear packets when 'maskFile' is selected
+    } else {
+      // Clear mask file selection when 'packets' is selected
+      $scope.session.config.qxdm.selectedMaskFile = null;
+      $scope.session.config.qxdm.maskFile = null;
+    }
+  };
+  
+  $scope.selectMaskFile = function() {
+    $scope.session.config.qxdm.maskFile = $scope.session.config.qxdm.selectedMaskFile;
+  };
+  
+ 
+
   $scope.openLogscatPanel = function(type) {
     $scope.logtype = type;
     $scope.customLogName = type.charAt(0).toUpperCase() + type.slice(1);
@@ -177,11 +202,11 @@ module.exports = function ManualTestAssistCtrl(
   $scope.saveCustomization = function() {
     switch($scope.logtype) {
       case 'qxdm':
-        $scope.session.config.qxdm = {
-          maskFile: $scope.selectedMaskFile,
-          packets: $scope.packets,
-          visible: true
-        };
+        if ($scope.session.config.qxdm.qxdmOption === 'maskFile') {
+          $scope.session.config.qxdm.maskFile = $scope.selectedMaskFile;
+        } else {
+          $scope.session.config.qxdm.packets = $scope.session.config.qxdm.packets;
+        }
         break;
       case 'video':
           $scope.session.config.video = {
@@ -209,12 +234,11 @@ module.exports = function ManualTestAssistCtrl(
   $scope.clearCustomization = function() {
     switch($scope.logtype) {
       case 'qxdm':
-        $scope.selectedMaskFile = $scope.maskFiles[0];
-        $scope.packets = '';
         $scope.session.config.qxdm = {
           maskFile: null,
           packets: '',
-          visible: false
+          qxdmOption: 'maskFile', // Reset to default option
+          selectedMaskFile: $scope.maskFiles[0] // Reset to first mask file option
         };
         break;
       case 'video':
@@ -310,7 +334,7 @@ module.exports = function ManualTestAssistCtrl(
       }).finally(function () {
         $scope.allPending = false
       })
-      console.log($scope.device.qxdm,"console ke bahar wala hun mein")
+      console.log($scope.device,"console ke bahar wala hun mein")
       
   }
   
@@ -358,12 +382,12 @@ module.exports = function ManualTestAssistCtrl(
       })
   }
   
-  $scope.selectMaskFile = function (maskFile) 
+ /*  $scope.selectMaskFile = function (maskFile) 
   {
     $scope.selectedMaskFile = maskFile
         
   
-  }
+  } */
  
   $scope.startTestAssist = function() {
     if ($scope.session.testCaseID) {
