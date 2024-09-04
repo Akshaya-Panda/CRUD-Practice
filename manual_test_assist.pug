@@ -144,19 +144,28 @@
             i.fa.fa-times
       .padded
         .row 
-        div(ng-if="logtype === 'radioLogs'")
+         div(ng-if="logtype === 'qxdm'")
           .form-group
-            label Mask File 
-            //- select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
-            //-   option(value='mask1') Sandstorm.dmc
-            //-   option(value='mask2') Mask 2
-            select.form-control(ng-model="session.config.selectedMaskFile"
+            label Select Option
+            .radio
+              input(type="radio", name="qxdmOption", ng-model="session.config.qxdmOption", value="maskFile", ng-change="updateQxdmSelection()", ng-disabled='isViewing')
+              span Mask File
+            .radio
+              input(type="radio", name="qxdmOption", ng-model="session.config.qxdmOption", value="packets", ng-change="updateQxdmSelection()", ng-disabled='isViewing')
+              span Packets
+        
+          // Mask File Selection
+          .form-group(ng-if="session.config.qxdmOption === 'maskFile'")
+            label Mask File
+            select.form-control(ng-model="session.config.qxdm.selectedMaskFile",
               ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
-              ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
+              ng-options="session.config.qxdm.selectedMaskFile"
               ng-change="selectMaskFile()" ng-disabled='isViewing')
-          .form-group 
-            label Packets 
-            input.form-control(type="text" ng-model="session.config.packets" ,ng-disabled='isViewing')
+        
+          // Packets Input
+          .form-group(ng-if="session.config.qxdmOption === 'packets'")
+            label Packets
+            input.form-control(type="text" ng-model="session.config.packets", ng-disabled='isViewing')
         
         div(ng-if="logtype === 'video'")
           .form-group
