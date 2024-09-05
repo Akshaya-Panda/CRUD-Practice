@@ -496,13 +496,39 @@ module.exports = function ManualTestAssistCtrl(
     $scope.control.testAssistCaptureScreenshot()
       .then(function (result) {
         $scope.screenshots = result.body
+        console.log($scope.screenshots,"REDTFYUGIKYJHGYFCNVH,k")
       }).catch(function (err) {
         console.log(`Error capturing screenshot: ${err.message}`)
       })
       .finally(() => {
         $scope.isCapturingScreenshot = false
+       console.log("Screenshots taken")
+      })
+      storeScreenshots();
+  }
+  
+  var storeScreenshots = function() {
+    sessionStorage.setItem(cachedPath, JSON.stringify($scope.screenshots))
+  }
+
+  
+  $scope.downloadScreenshot = function (screenshot) {
+    var screenshotName = `${screenshot.body.id}/${screenshot.body.name}`
+
+    $http.get(`s/image/${screenshotName}`, {
+      responseType: "arraybuffer"
+    })
+      .success(function (data) {
+        var anchor = angular.element('<a/>');
+        var blob = new Blob([data]);
+        anchor.attr({
+          href: window.URL.createObjectURL(blob),
+          target: '_blank',
+          download: `${screenshotName}.jpg`
+        })[0].click();
       })
   }
+
 
   $scope.upload = function (testCase) {
     const { executionID } = testCase
