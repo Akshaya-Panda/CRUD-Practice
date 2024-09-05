@@ -99,12 +99,29 @@
                 span {{isViewing? 'View':'Customize'}}
       <hr>
       .d-flex.justify-space-between(ng-if="isRunning")
-        button.btn.btn-primary.btn-sm
+        button.btn.btn-primary.btn-sm(ng-click='captureScreenshot()', ng-disabled="isCapturingScreenshot", title='{{"Take a Screenshot"|translate}}')
           i.fa.fa-camera 
-          span Take a Screenshot
+          span(translate) Screenshot
         div.d-flex.align-items-center(ng-if="isRunning")
-          strong Total Screenshot 
-          span.screenshot-count 7
+          span.small-text {{screenshots.length}} screenshots
+        .widget-content.padded.pt-0(ng-if="isCapturingScreenshot")
+          i.fa.fa-spinner.fa-spin.fa-fw
+          
+          .widget-content.padded
+            nothing-to-show(message='{{"No screenshots taken"|translate}}', icon='fa-camera', ng-show='!screenshots.length')
+
+            ul.screenshots-icon-view.clear-fix.selectable
+              li.screenshots-icon-item(ng-repeat='shot in screenshots track by $index').cursor-select
+                div.screenbox
+                  h6 {{ shot.body.date | date:'HH:mm:ss' }}
+                  h5 {{ device.name }}
+                  button.btn.btn-sm.btn-primary-outline(ng-click='downloadScreenshot(shot)')
+                    i.fa.fa-save
+                a(ng-href='{{ shot.body.href }}', target='_blank')
+                  img(ng-src='{{ shot.body.href + shotSizeParameter(480, 1) }}',
+                  ng-srcset='{{ shot.body.href + shotSizeParameter(480, 2) }} 2x').screenshot-image
+
+          .clearfix
         //- <img alt="Google" height="92" src="/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png" style="padding:28px 0 14px" width="272" id="hplogo">
 
      // .screenshot-container(ng-if="isRunning")
