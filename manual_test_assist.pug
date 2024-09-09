@@ -1,26 +1,43 @@
-.row.stf-info.selectable(ng-controller='ManualTestAssistCtrl')
-    
-  .widget-container.fluid-height
-    .heading
-      span
-        stacked-icon(icon='fa-clock-o')
-        span(translate) New Session
-        button.btn.pull-right.btn-sm.btn-primary-outline
-          i.fa.fa-history 
-          span History
-        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()')
-          i.fa(ng-class="{'fa-play': !isRunning, 'fa-stop': isRunning}")
-          span {{isRunning ? 'Stop' : 'Start'}}
-        button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization_1()")
-          i.fa.fa-repeat
-          span Clear
-        //- button.btn.pull-right.btn-primary.btn-sm(ng-if="isRunning")
-        //-   i.fa.fa-camera
-        //-   span Capture Screenshot
-        
-          
-    .padded
-      .row 
+.col-sm-12
+          h5 {{"History" | translate}}
+          table.table.table-condensed(ng-if="history.length > 0")
+            thead
+              tr 
+                th Test Case ID
+                th Execution ID
+                th Duration
+                th Bugreports
+                th Status
+            tbody
+              tr(ng-repeat='testCase in history track by $index')
+                td
+                  span {{testCase.testCaseID}}
+                td
+                  span {{testCase.executionID ? (testCase.executionID.substring(0, 6) + "..."): ""}}
+                td
+                  span {{testCase.startTimestamp | date: 'd/M/yyyy h:mm a'}} - &nbsp;
+                  span {{(testCase.stopTimestamp || "...") | date: 'h:mm a'}}
+                td
+                  span {{testCase.bugreports && testCase.bugreports.list && testCase.bugreports.list.length ? testCase.bugreports.list.length : 0}}
+                td
+                  div(ng-if='testCase.isUploading !== true')
+                    span {{translateStatus(testCase)}}
+                    button.btn.btn-sm.btn-primary-outline(ng-if="testCase.status == 'stopped' || testCase.status == 'failed'", ng-click='upload(testCase)')
+                      i.fa.fa-save
+                      span(translate) {{testCase.status == 'stopped' ? "Upload" : "Reupload"}}
+                    button.btn.btn-sm.btn-danger-outline(ng-if="isAdmin && testCase.status == 'uploaded'", ng-click='deleteExecution(testCase)')
+                      i.fa.fa-trash-o
+                      span(translate) Delete
+                  div(ng-if='testCase.isUploading === true').selectable
+                    uib-progressbar(max='100', value='testCase.uploadProgress', ng-class='active').progress-striped
+                    div
+                      span
+                        strong
+                          span(translate) Uploading...
+                          span  ({{testCase.uploadProgress}}%)
+                          
+          div(ng-if="history.length == 0")
+            span No test cases executed yet. 
         .col-sm-6
           .form-group
             label Session Name 
