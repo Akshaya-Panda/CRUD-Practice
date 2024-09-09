@@ -1,4 +1,28 @@
-.col-sm-12
+.row.stf-info.selectable(ng-controller='ManualTestAssistCtrl')
+    
+  .widget-container.fluid-height
+    .heading
+      span
+        stacked-icon(icon='fa-clock-o')
+        span(translate) New Session
+        button.btn.pull-right.btn-sm.btn-primary-outline
+          i.fa.fa-history 
+          span History
+          
+        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()')
+          i.fa(ng-class="{'fa-play': !isRunning, 'fa-stop': isRunning}")
+          span {{isRunning ? 'Stop' : 'Start'}}
+        button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization_1()")
+          i.fa.fa-repeat
+          span Clear
+        //- button.btn.pull-right.btn-primary.btn-sm(ng-if="isRunning")
+        //-   i.fa.fa-camera
+        //-   span Capture Screenshot
+        
+          
+    .padded
+      .row ()
+        .col-sm-12
           h5 {{"History" | translate}}
           table.table.table-condensed(ng-if="history.length > 0")
             thead
@@ -37,20 +61,8 @@
                           span  ({{testCase.uploadProgress}}%)
                           
           div(ng-if="history.length == 0")
-            span No test cases executed yet. 
-        .col-sm-6
-          .form-group
-            label Session Name 
-            input.form-control(type="text" ng-model='session.testCaseID')
-          .form-group
-            label Session Description 
-            textarea.form-control(ng-model='session.description')
-          //- .form-group
-          //-   label Pair more device
-          //-   input.form-control(type="text")
-            //- select.form-control(ng-model='selectedDevice')
-            //-   option(value='device1')Moto G2 
-            //-   option(value='device2')Moto G3 
+            span No test cases executed yet.
+        .col-sm-6 
           .form-group
             label Pair More Devices
             select.form-control(ng-model='selectedDevice')
