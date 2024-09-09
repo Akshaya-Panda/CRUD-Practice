@@ -19,15 +19,23 @@ module.exports = function ManualTestAssistCtrl(
   const $ctrl = this;
 
   $scope.allPending = true;
+  $scope.isCapturingScreenshot = false;
   $scope.pending = false;
   $scope.pendingBugreport = false;
   $scope.optInBugreport = false;
   $scope.history = [];
   $scope.isGenerating = false;
   $scope.bugreportData = { status: 'discarding', bugreports: [] };
-  $scope.screenshots = [];
+  $scope.screenshots =  [];
   $scope.frameRate = "15";
   $scope.customLogName = "";
+  $scope.demoMaskFiles;
+  var isHistory = false
+  var cachedPath = `screenshots_${$scope.device.serial}`
+  var screenshotsJson = sessionStorage.getItem(cachedPath)
+  $scope.screenshots = screenshotsJson? JSON.parse(screenshotsJson): []
+  $scope.screenShotSize = 400
+
  /*  $scope.session= {
     testCaseID: "",
     description: "",
@@ -57,7 +65,7 @@ module.exports = function ManualTestAssistCtrl(
       frameRate: "15"
     },
     logcatLogs: "",
-    bugreport: "",
+    bugreport: "continue",
     audio: ""
   },
 };
@@ -99,6 +107,7 @@ module.exports = function ManualTestAssistCtrl(
   
   $scope.showLogscatPanel = false;
   $scope.isRunning = false;
+  $scope.showHistory= false;
   $scope.logtype = '';
   $scope.maskFile = '';
   $scope.packets = '';
@@ -107,6 +116,8 @@ module.exports = function ManualTestAssistCtrl(
   $scope.isViewing = false;
   $scope.maskFiles = [{ maskFile: "Default DMC"} ];
   $scope.selectedMaskFile = $scope.maskFiles[0];
+  $scope.qxdmCapable = false
+  
   
   $scope.session.config.bugreportAction = 'continue';
   $scope.session.config.qxdmOption = 'maskFile'
@@ -154,11 +165,14 @@ module.exports = function ManualTestAssistCtrl(
   $scope.updateQxdmSelection = function(device) {
     if ($scope.session.config.qxdm.qxdmOption === 'maskFile') {
      
-      // Set the mask file to the default or previously selected mask file
-      $scope.session.config.qxdm.selectedMaskFile =  ([$scope.maskFiles[0],...device.qxdm.maskFiles.map(item => item.maskFile)] || []) ;
-      $scope.session.config.qxdm.packets = '';  // Clear packets when 'maskFile' is selected
+      
+      console.log($scope.device.qxdm.maskFiles.map(item => item.maskFile),"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+      $scope.session.config.qxdm.selectedMaskFile =  [...$scope.device.qxdm.maskFiles.map(item => item.maskFile),$scope.maskFiles[0].maskFile]  ;
+      $scope.demoMaskFiles =  $scope.session.config.qxdm.selectedMaskFile;
+      console.log($scope.session.config.qxdm.selectedMaskFile,"#####################################")
+      $scope.session.config.qxdm.packets = '';  
     } else {
-      // Clear mask file selection when 'packets' is selected
+      
       $scope.session.config.qxdm.selectedMaskFile = null;
       $scope.session.config.qxdm.maskFile = null;
     }
@@ -177,7 +191,9 @@ module.exports = function ManualTestAssistCtrl(
  
     switch(type) {
       case 'qxdm':
-        $scope.selectedMaskFile = $scope.session.config.qxdm.maskFile || $scope.maskFiles[0];
+       // $scope.selectedMaskFile = [...$scope.device.qxdm.maskFiles.map(item => item.maskFile),$scope.maskFiles[0].maskFile] ;
+       $scope.session.config.qxdm.selectedMaskFile =  [...$scope.device.qxdm.maskFiles.map(item => item.maskFile),$scope.maskFiles[0].maskFile]  ;
+       $scope.demoMaskFiles = $scope.session.config.qxdm.selectedMaskFile;
         $scope.packets = $scope.session.config.qxdm.packets || '';
         break;
       case 'video':
@@ -187,7 +203,7 @@ module.exports = function ManualTestAssistCtrl(
         
         break;
       case 'bugreport':
-        $scope.bugreportAction =$scope.session.config.bugreportAction || '';
+        $scope.session.config.bugreportAction = $scope.bugreportAction  || 'continue';
         break;
       case 'audio':
        
@@ -323,17 +339,19 @@ module.exports = function ManualTestAssistCtrl(
   init()
 
   function init() {
-    getTestAssistHistory()
-    /*   .then(getTestAssistStatus) */
-      .then(async function (device) {
+   $scope.qxdmCapable=$scope.device.qxdm && $scope.device.qxdm.capability || false
+   // $scope.getTestAssistHistory()
+     // .then(getTestAssistStatus)
+      /* .then(async function (device) {
         
         $scope.maskFiles.push(...device.qxdm.maskFiles || [])
         console.log($scope.maskFiles)
-      }).catch(function (err) {
+      })
+        .catch(function (err) {
         $scope.error = err
       }).finally(function () {
         $scope.allPending = false
-      })
+      }) */
       console.log($scope.device,"console ke bahar wala hun mein")
       
   }
@@ -350,7 +368,8 @@ module.exports = function ManualTestAssistCtrl(
       });
   } */
 
-  function getTestAssistHistory() {
+  $scope.getTestAssistHistory = function() {
+    $scope.showHistory=true
     return $http.get(`/api/v1/devices/session/${serial}/history?isUi=true`).then(function (response) {
       $scope.history = response.data.history.map(newTC => {
         const oldTC = $scope.history.find((oldTC) => oldTC.executionID === newTC.executionID)
@@ -398,7 +417,7 @@ module.exports = function ManualTestAssistCtrl(
       var logs = {};
       if ($scope.checkboxes.logcatLogs) logs.logcatLogs = $scope.session.config.logcatLogs;
       if ($scope.checkboxes.bugreport) logs.bugreport = $scope.session.config.bugreportAction;
-      if ($scope.checkboxes.qxdm) logs.qxdm = $scope.session.config.qxdm;
+      if ($scope.checkboxes.qxdm) logs.qxdm = $scope.demoMaskFiles;
       if ($scope.checkboxes.video) logs.video = $scope.session.config.video;
       if ($scope.checkboxes.audio) logs.audio = $scope.session.config.audio;
    
@@ -421,7 +440,7 @@ module.exports = function ManualTestAssistCtrl(
    
           if (result.body) {
             getTestAssistStatus();
-            //$scope.session = result.body;
+         // $sope.session = result.body;
    
             if (result.body.bugreports && result.body.bugreports.status === "discarding") {
               $scope.bugreportData.status = 'discarding';
@@ -448,13 +467,13 @@ module.exports = function ManualTestAssistCtrl(
           .then(function (result) {
             console.log("stopped")
             if (result.body) {
-              $scope.session = result.body;
+               $scope.session = result.body; 
               if (result.body.bugreports && result.body.bugreports.status == "discarding") {
                 $scope.bugreportData.status = 'discarding';
               }
               $scope.screenshots = [];
             }
-            //return getTestAssistHistory();
+            return $scope.getTestAssistHistory();
           })
           .catch(function (err) {
             console.error(`Error stopping test execution: ${err.message}`);
@@ -496,6 +515,7 @@ module.exports = function ManualTestAssistCtrl(
     $scope.control.testAssistCaptureScreenshot()
       .then(function (result) {
         $scope.screenshots = result.body
+        $scope.screenshots = $scope.screenshots.reverse();
         console.log($scope.screenshots,"REDTFYUGIKYJHGYFCNVH,k")
       }).catch(function (err) {
         console.log(`Error capturing screenshot: ${err.message}`)
@@ -513,7 +533,7 @@ module.exports = function ManualTestAssistCtrl(
 
   
   $scope.downloadScreenshot = function (screenshot) {
-    var screenshotName = `${screenshot.body.id}/${screenshot.body.name}`
+    var screenshotName = `${screenshot.tempPath.id}/${screenshot.tempPath.name}`
 
     $http.get(`s/image/${screenshotName}`, {
       responseType: "arraybuffer"
@@ -528,7 +548,6 @@ module.exports = function ManualTestAssistCtrl(
         })[0].click();
       })
   }
-
 
   $scope.upload = function (testCase) {
     const { executionID } = testCase
@@ -553,7 +572,7 @@ module.exports = function ManualTestAssistCtrl(
 
     $scope.control.deleteTestAssistExecution(executionID)
       .then(function (result) {
-        return getTestAssistHistory()
+        return $scope.getTestAssistHistory()
       }).catch(function (err) {
         console.log(`Error deleting: ${err.message}`)
       })
@@ -589,7 +608,7 @@ module.exports = function ManualTestAssistCtrl(
       } catch (err) {
         // no-op
       }
-      return getTestAssistHistory()
+      return $scope.getTestAssistHistory()
     }
   })
 
