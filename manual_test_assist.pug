@@ -29,9 +29,10 @@
               thead
                 tr 
                   th Test Case ID
-                  th Execution ID
-                  th Duration
-                  th Bugreports
+                  th Session ID
+                  th Selected Logs
+                  th No. of Screenshots
+                  th Post Processing 
                   th Status
               tbody
                 tr(ng-repeat='testCase in history track by $index')
@@ -40,26 +41,29 @@
                   td
                     span {{testCase.executionID ? (testCase.executionID.substring(0, 6) + "..."): ""}}
                   td
-                    span {{testCase.startTimestamp | date: 'd/M/yyyy h:mm a'}} - &nbsp;
-                    span {{(testCase.stopTimestamp || "...") | date: 'h:mm a'}}
+                    span {{[testCase.config] || [] }}
+                    //- span {{testCase.startTimestamp | date: 'd/M/yyyy h:mm a'}} - &nbsp;
+                    //- span {{(testCase.stopTimestamp || "...") | date: 'h:mm a'}}
+                    
                   td
-                    span {{testCase.bugreports && testCase.bugreports.list && testCase.bugreports.list.length ? testCase.bugreports.list.length : 0}}
+                    span {{testCase.screenshots ? testCase.screenshots.length : 0}}
+                    //- span {{testCase.bugreports && testCase.bugreports.list && testCase.bugreports.list.length ? testCase.bugreports.list.length : 0}}
                   td
-                    div(ng-if='testCase.isUploading !== true')
-                      span {{translateStatus(testCase)}}
-                      button.btn.btn-sm.btn-primary-outline(ng-if="testCase.status == 'stopped' || testCase.status == 'failed'", ng-click='upload(testCase)')
-                        i.fa.fa-save
-                        span(translate) {{testCase.status == 'stopped' ? "Upload" : "Reupload"}}
-                      button.btn.btn-sm.btn-danger-outline(ng-if="isAdmin && testCase.status == 'uploaded'", ng-click='deleteExecution(testCase)')
-                        i.fa.fa-trash-o
-                        span(translate) Delete
-                    div(ng-if='testCase.isUploading === true').selectable
-                      uib-progressbar(max='100', value='testCase.uploadProgress', ng-class='active').progress-striped
-                      div
-                        span
-                          strong
-                            span(translate) Uploading...
-                            span  ({{testCase.uploadProgress}}%)
+                    //- div(ng-if='testCase.isUploading !== true')
+                    //-   span {{translateStatus(testCase)}}
+                    //-   button.btn.btn-sm.btn-primary-outline(ng-if="testCase.status == 'stopped' || testCase.status == 'failed'", ng-click='upload(testCase)')
+                    //-     i.fa.fa-save
+                    //-     span(translate) {{testCase.status == 'stopped' ? "Upload" : "Reupload"}}
+                    //-   button.btn.btn-sm.btn-danger-outline(ng-if="isAdmin && testCase.status == 'uploaded'", ng-click='deleteExecution(testCase)')
+                    //-     i.fa.fa-trash-o
+                    //-     span(translate) Delete
+                    //- div(ng-if='testCase.isUploading === true').selectable
+                    //-   uib-progressbar(max='100', value='testCase.uploadProgress', ng-class='active').progress-striped
+                    //-   div
+                    //-     span
+                    //-       strong
+                    //-         span(translate) Uploading...
+                    //-         span  ({{testCase.uploadProgress}}%)
                             
             div(ng-if="history.length == 0")
               span No test cases executed yet.
@@ -87,15 +91,15 @@
             ul.session-checkbox  
               li
                 div
-                  input(type="radio",ng-model="logsOption",value='uploadFTP')
+                  input(type="radio",ng-model="session.logsOption",value='uploadFTP',ng-change='updatePostProcessing()')
                   span Upload original logs to FTP
               li 
                 div
-                  input(type="radio",ng-model="logsOption",value='uploadDB')
+                  input(type="radio",ng-model="session.logsOption",value='uploadDB',ng-change='updatePostProcessing()')
                   span Process and upload logs to DB
               li
                 div
-                  input(type="radio",ng-model="logsOption",value='discardLogs')
+                  input(type="radio",ng-model="session.logsOption",value='discardLogs',ng-change='updatePostProcessing()')
                   span Discard Logs
 
         .col-sm-6
@@ -110,7 +114,7 @@
                 span {{isViewing? 'View':'Customize'}}
             li 
               div
-                input(type="checkbox", ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')",
+                input(type="checkbox",  ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')",
                  ng-disabled="isViewing")
                 span Bugreport
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.bugreport' ng-click='openLogscatPanel("bugreport")')
@@ -118,10 +122,10 @@
               
             li
               div
-                input(type="checkbox", ng-model="checkboxes.radioLogs", ng-change="updateCustomizeButton('radioLogs')"
-                 ,ng-disabled='isViewing')
+                input(type="checkbox", ng-model="checkboxes.qxdm", ng-change="updateCustomizeButton('qxdm')"
+                 ,ng-disabled='!qxdmCapable || isViewing')
                 span Radio Logs(QXDM)
-              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.radioLogs' ng-click='openLogscatPanel("radioLogs")')
+              button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.qxdm' ng-click='openLogscatPanel("qxdm")')
                 span {{isViewing? 'View':'Customize'}}
               //- button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()') Customize
             li 
@@ -143,27 +147,29 @@
       .d-flex.justify-space-between(ng-if="isRunning")
         button.btn.btn-primary.btn-sm(ng-click='captureScreenshot()', ng-disabled="isCapturingScreenshot", title='{{"Take a Screenshot"|translate}}')
           i.fa.fa-camera 
-          span(translate) Screenshot
+          span(translate) Take a Screenshot
         div.d-flex.align-items-center(ng-if="isRunning")
           span.small-text {{screenshots.length}} screenshots
-        .widget-content.padded.pt-0(ng-if="isCapturingScreenshot")
-          i.fa.fa-spinner.fa-spin.fa-fw
-          
-          .widget-content.padded
-            nothing-to-show(message='{{"No screenshots taken"|translate}}', icon='fa-camera', ng-show='!screenshots.length')
+      .widget-content.padded.pt-0(ng-if="isCapturingScreenshot")
+        i.fa.fa-spinner.fa-spin.fa-fw
+              
+      .widget-content.paded(ng-if="screenshots.length > 0")
+        ul.screenshots-icon-view.clear-fix.selectable
+          li.screenshots-icon-item(ng-repeat='shot in screenshots |  orderBy:"shot.timestamp" track by $index').cursor-select
+            div.screenbox
+              h6 {{ shot.timestamp | date:'HH:mm:ss' }}
+              //h5 {{ device.name }}
+              button.btn.btn-sm.btn-primary-outline(ng-click='downloadScreenshot(shot)')
+                i.fa.fa-save
+            
+            a(ng-href='{{ shot.tempPath.href  }}', target='_blank')
+                img(ng-src='{{ shot.tempPath.href   + shotSizeParameter(480, 1) }}',
+                ng-srcset='{{ shot.tempPath.href  + shotSizeParameter(480, 2) }} 2x').screenshot-image
+                
+        .widget-content.padded
+          nothing-to-show(message='{{"No screenshots taken"|translate}}', icon='fa-camera', ng-show='!screenshots.length')
 
-            ul.screenshots-icon-view.clear-fix.selectable
-              li.screenshots-icon-item(ng-repeat='shot in screenshots track by $index').cursor-select
-                div.screenbox
-                  h6 {{ shot.body.date | date:'HH:mm:ss' }}
-                  h5 {{ device.name }}
-                  button.btn.btn-sm.btn-primary-outline(ng-click='downloadScreenshot(shot)')
-                    i.fa.fa-save
-                a(ng-href='{{ shot.body.href }}', target='_blank')
-                  img(ng-src='{{ shot.body.href + shotSizeParameter(480, 1) }}',
-                  ng-srcset='{{ shot.body.href + shotSizeParameter(480, 2) }} 2x').screenshot-image
-
-          .clearfix
+            
         //- <img alt="Google" height="92" src="/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png" style="padding:28px 0 14px" width="272" id="hplogo">
 
      // .screenshot-container(ng-if="isRunning")
@@ -187,7 +193,9 @@
             i.fa.fa-clock-o
             span 3:40 PM 
           img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
-      
+          
+
+         
     //- .widget-content.padded.pt-0(ng-if="allPending")
     //- i.fa.fa-spinner.fa-spin.fa-fw
     
@@ -203,7 +211,7 @@
             i.fa.fa-times
       .padded
         .row 
-         div(ng-if="logtype === 'qxdm'")
+        div(ng-if="logtype === 'qxdm'")
           .form-group
             label Select Option
             .radio
@@ -217,14 +225,27 @@
           .form-group(ng-if="session.config.qxdmOption === 'maskFile'")
             label Mask File
             select.form-control(ng-model="session.config.qxdm.selectedMaskFile",
-              ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
-              ng-options="session.config.qxdm.selectedMaskFile"
+             
+              ng-options="maskFile for maskFile in demoMaskFiles"
               ng-change="selectMaskFile()" ng-disabled='isViewing')
         
           // Packets Input
           .form-group(ng-if="session.config.qxdmOption === 'packets'")
             label Packets
             input.form-control(type="text" ng-model="session.config.packets", ng-disabled='isViewing')
+        //- div(ng-if="logtype === 'qxdm'")
+        //-   .form-group
+        //-     label Mask File 
+        //-     //- select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
+        //-     //-   option(value='mask1') Sandstorm.dmc
+        //-     //-   option(value='mask2') Mask 2
+        //-     select.form-control(ng-model="session.config.selectedMaskFile"
+        //-       ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
+        //-       ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
+        //-       ng-change="selectMaskFile()" ng-disabled='isViewing')
+        //-   .form-group 
+        //-     label Packets 
+        //-     input.form-control(type="text" ng-model="session.config.packets" ,ng-disabled='isViewing')
         
         div(ng-if="logtype === 'video'")
           .form-group
@@ -240,7 +261,7 @@
               .form-group
                 label BugReport Actions
                 .radio
-                  input(type="radio", name="bugreportAction", ng-model="session.config bugreportAction", value="continue", ng-change="updateBugreportAction()",ng-disabled='isViewing')
+                  input(type="radio", name="bugreportAction", ng-model="session.config.bugreportAction", value="continue", ng-change="updateBugreportAction()",ng-disabled='isViewing')
                   span Continue with older bugreport
                 .radio
                   input(type="radio", name="bugreportAction", ng-model="session.config.bugreportAction", value="save", ng-change="updateBugreportAction()",ng-disabled='isViewing')
