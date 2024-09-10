@@ -9,7 +9,7 @@
           i.fa.fa-history 
           span History
           
-        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()')
+        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()' ng-disabled="!session.testCaseID || !session.description || (!checkboxes.logcatLogs && !checkboxes.bugreport && !checkboxes.qxdm && !checkboxes.audio && !checkboxes.video)")
           i.fa(ng-class="{'fa-play': !isRunning, 'fa-stop': isRunning}")
           span {{isRunning ? 'Stop' : 'Start'}}
         button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization_1()")
@@ -69,11 +69,17 @@
               span No test cases executed yet.
         .col-sm-6
           .form-group
-            label Session Name 
-            input.form-control(type="text" ng-model='session.testCaseID')
+            label 
+              | Session Name 
+              span.text-danger *
+            input.form-control(type="text" ng-model='session.testCaseID' required uib-tooltip="Please fill out this field" tooltip-placement="right")
+          
           .form-group(ng-if='!isRunning')
-            label Session Description 
-            textarea.form-control(ng-model='session.description')
+            label 
+              | Session Description 
+              span.text-danger *
+            textarea.form-control(ng-model='session.description' required uib-tooltip="Please fill out this field" tooltip-placement="right")
+            
           //- .form-group
           //-   label Pair more device
           //-   input.form-control(type="text")
