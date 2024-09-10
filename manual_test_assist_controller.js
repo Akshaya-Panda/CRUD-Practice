@@ -119,6 +119,7 @@ module.exports = function ManualTestAssistCtrl(
   $scope.qxdmCapable = false
   
   
+  $scope.session.logsOption = 'uploadDB';
   $scope.session.config.bugreportAction = 'continue';
   $scope.session.config.qxdmOption = 'maskFile'
   
@@ -157,6 +158,15 @@ module.exports = function ManualTestAssistCtrl(
   $scope.$watch('session.testCaseID', function(newValue) {
     $scope.testCaseID = newValue;
   });
+  
+  $scope.$watch('session.logsOption', function(){
+    $scope.logsOption = 'uploadDB';
+  });
+  
+  /* $scope.updatePostProcessing = function()
+  {
+   $scope.session.logsOption = $scope.logsOption; 
+  } */
   
   $scope.updateCustomizeButton = function(checkboxKey) {
     $scope.showCustomizeButton[checkboxKey] = $scope.checkboxes[checkboxKey];
@@ -369,20 +379,26 @@ module.exports = function ManualTestAssistCtrl(
   } */
 
   $scope.getTestAssistHistory = function() {
-    $scope.showHistory=true
+    $scope.showHistory=!$scope.showHistory
+    if(!$scope.showHistory){
+    
     return $http.get(`/api/v1/devices/session/${serial}/history?isUi=true`).then(function (response) {
       $scope.history = response.data.history.map(newTC => {
         const oldTC = $scope.history.find((oldTC) => oldTC.executionID === newTC.executionID)
         if (oldTC && oldTC.isUploading) {
           return oldTC
         } else {
+         /*  newTC.config=newTC.config || [];
+          newTC.config.selectedLogs = newTC.config.selectedLogs || []; */
           return newTC
         }
       })
+      console.log($scope.history,"****************************************")
     }).catch(function (error) {
       console.error("Error fetching test assist history" + error)
     })
   }
+}
 
   function getTestAssistStatus() {
     return $scope.control.getTestAssistStatus()
