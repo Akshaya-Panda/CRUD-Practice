@@ -9,7 +9,7 @@
           i.fa.fa-history 
           span History
           
-        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()' ng-disabled="!session.testCaseID || !session.description || (!checkboxes.logcatLogs && !checkboxes.bugreport && !checkboxes.qxdm && !checkboxes.audio && !checkboxes.video)")
+        button.btn.pull-right.btn-sm.btn-primary-outline(ng-click='toggleStartStop()' ng-disabled="!isRunning && (!session.testCaseID || !session.description || (!checkboxes.logcatLogs && !checkboxes.bugreport && !checkboxes.qxdm && !checkboxes.audio && !checkboxes.video))")
           i.fa(ng-class="{'fa-play': !isRunning, 'fa-stop': isRunning}")
           span {{isRunning ? 'Stop' : 'Start'}}
         button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization_1()")
@@ -23,8 +23,13 @@
     .padded
       .row
         .col-sm-12
+          
+          .widget-content.padded.pt-0(ng-if="showHistory")
+            i.fa.fa-spinner.fa-spin.fa-fw
+            
           div(ng-if='showHistory')
             h5 {{"History" | translate}}
+            
             table.table.table-condensed(ng-if="history.length > 0")
               thead
                 tr 
@@ -48,22 +53,25 @@
                   td
                     span {{testCase.screenshots ? testCase.screenshots.length : 0}}
                     //- span {{testCase.bugreports && testCase.bugreports.list && testCase.bugreports.list.length ? testCase.bugreports.list.length : 0}}
+                    
+                  td 
+                  
                   td
-                    //- div(ng-if='testCase.isUploading !== true')
-                    //-   span {{translateStatus(testCase)}}
-                    //-   button.btn.btn-sm.btn-primary-outline(ng-if="testCase.status == 'stopped' || testCase.status == 'failed'", ng-click='upload(testCase)')
-                    //-     i.fa.fa-save
-                    //-     span(translate) {{testCase.status == 'stopped' ? "Upload" : "Reupload"}}
-                    //-   button.btn.btn-sm.btn-danger-outline(ng-if="isAdmin && testCase.status == 'uploaded'", ng-click='deleteExecution(testCase)')
-                    //-     i.fa.fa-trash-o
-                    //-     span(translate) Delete
-                    //- div(ng-if='testCase.isUploading === true').selectable
-                    //-   uib-progressbar(max='100', value='testCase.uploadProgress', ng-class='active').progress-striped
-                    //-   div
-                    //-     span
-                    //-       strong
-                    //-         span(translate) Uploading...
-                    //-         span  ({{testCase.uploadProgress}}%)
+                    div(ng-if='testCase.isUploading !== true')
+                      span {{translateStatus(testCase)}}
+                      button.btn.btn-sm.btn-primary-outline(ng-if="testCase.status == 'stopped' || testCase.status == 'failed'", ng-click='upload(testCase)')
+                        i.fa.fa-save
+                        span(translate) {{testCase.status == 'stopped' ? "Upload" : "Reupload"}}
+                      button.btn.btn-sm.btn-danger-outline(ng-if="isAdmin && testCase.status == 'uploaded'", ng-click='deleteExecution(testCase)')
+                        i.fa.fa-trash-o
+                        span(translate) Delete
+                    div(ng-if='testCase.isUploading === true').selectable
+                      uib-progressbar(max='100', value='testCase.uploadProgress', ng-class='active').progress-striped
+                      div
+                        span
+                          strong
+                            span(translate) Uploading...
+                            span  ({{testCase.uploadProgress}}%)
                             
             div(ng-if="history.length == 0")
               span No test cases executed yet.
@@ -72,17 +80,13 @@
             label 
               | Session Name 
               span.text-danger *
-            input.form-control(type="text" ng-model='session.testCaseID' required uib-tooltip="Please fill out this field" tooltip-placement="right")
+            input.form-control(type="text" ng-model='session.testCaseID' required uib-tooltip="{{!session.testCaseID ? 'Please fill out this field' : ''}}" tooltip-placement="right")
           
           .form-group(ng-if='!isRunning')
             label 
               | Session Description 
               span.text-danger *
-            textarea.form-control(ng-model='session.description' required uib-tooltip="Please fill out this field" tooltip-placement="right")
-            
-          //- .form-group
-          //-   label Pair more device
-          //-   input.form-control(type="text")
+            textarea.form-control(ng-model='session.description' required uib-tooltip="{{!session.description ? 'Please fill out this field' : ''}}" tooltip-placement="right")
             //- select.form-control(ng-model='selectedDevice')
             //-   option(value='device1')Moto G2 
             //-   option(value='device2')Moto G3 
@@ -97,15 +101,15 @@
             ul.session-checkbox  
               li
                 div
-                  input(type="radio",ng-model="session.logsOption",value='uploadFTP',ng-change='updatePostProcessing()')
+                  input(type="radio",ng-model="logsOption",value='uploadFTP',ng-change='updatePostProcessing()')
                   span Upload original logs to FTP
               li 
                 div
-                  input(type="radio",ng-model="session.logsOption",value='uploadDB',ng-change='updatePostProcessing()')
+                  input(type="radio",ng-model="logsOption",value='uploadDB',ng-change='updatePostProcessing()')
                   span Process and upload logs to DB
               li
                 div
-                  input(type="radio",ng-model="session.logsOption",value='discardLogs',ng-change='updatePostProcessing()')
+                  input(type="radio",ng-model="logsOption",value='discardLogs',ng-change='updatePostProcessing()')
                   span Discard Logs
 
         .col-sm-6
@@ -113,42 +117,42 @@
             li
               div
                 input(type="checkbox", ng-model="checkboxes.logcatLogs", ng-change="updateCustomizeButton('logcatLogs')",
-                 ng-disabled="isViewing")
+                 ng-disabled="isRunning" )
                 span Logcat Logs
               
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.logcatLogs' ng-click='openLogscatPanel("logcatLogs")')
-                span {{isViewing? 'View':'Customize'}}
+                span {{isRunning? 'View':'Customize'}}
             li 
               div
                 input(type="checkbox",  ng-model="checkboxes.bugreport", ng-change="updateCustomizeButton('bugreport')",
-                 ng-disabled="isViewing")
+                 ng-disabled="isRunning")
                 span Bugreport
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.bugreport' ng-click='openLogscatPanel("bugreport")')
-                span {{isViewing? 'View':'Customize'}}
+                span {{isRunning? 'View':'Customize'}}
               
             li
               div
                 input(type="checkbox", ng-model="checkboxes.qxdm", ng-change="updateCustomizeButton('qxdm')"
-                 ,ng-disabled='!qxdmCapable || isViewing')
+                 ,ng-disabled='!qxdmCapable || isRunning')
                 span Radio Logs(QXDM)
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.qxdm' ng-click='openLogscatPanel("qxdm")')
-                span {{isViewing? 'View':'Customize'}}
+                span {{isRunning? 'View':'Customize'}}
               //- button.btn.btn-primary-outline.btn-sm(ng-click='openLogscatPanel()') Customize
             li 
               div
                 input(type="checkbox", ng-model="checkboxes.video", ng-change="updateCustomizeButton('video')",
-                 ng-disabled="isViewing")
+                 ng-disabled="isRunning")
                 span Video
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.video' ng-click='openLogscatPanel("video")')
-                span {{isViewing? 'View':'Customize'}}
+                span {{isRunning? 'View':'Customize'}}
             li 
               div
                 input(type="checkbox", ng-model="checkboxes.audio", ng-change="updateCustomizeButton('audio')",
-                 ng-disabled="isViewing")
+                 ng-disabled="isRunning")
                 span Audio
               //if showCustomizeButton
               button.btn.btn-primary-outline.btn-sm(ng-if= 'showCustomizeButton.audio' ng-click='openLogscatPanel("audio")')
-                span {{isViewing? 'View':'Customize'}}
+                span {{isRunning? 'View':'Customize'}}
       <hr>
       .d-flex.justify-space-between(ng-if="isRunning")
         button.btn.btn-primary.btn-sm(ng-click='captureScreenshot()', ng-disabled="isCapturingScreenshot", title='{{"Take a Screenshot"|translate}}')
@@ -174,34 +178,7 @@
                 
         .widget-content.padded
           nothing-to-show(message='{{"No screenshots taken"|translate}}', icon='fa-camera', ng-show='!screenshots.length')
-
-            
-        //- <img alt="Google" height="92" src="/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png" style="padding:28px 0 14px" width="272" id="hplogo">
-
-     // .screenshot-container(ng-if="isRunning")
-        div.screenbox
-          p.m-0.text-right
-            i.fa.fa-clock-o
-            span 3:40 PM 
-          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
-        div.screenbox
-          p.m-0.text-right
-            i.fa.fa-clock-o
-            span 3:40 PM 
-          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
-        div.screenbox
-          p.m-0.text-right
-            i.fa.fa-clock-o
-            span 3:40 PM 
-          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
-        div.screenbox
-          p.m-0.text-right
-            i.fa.fa-clock-o
-            span 3:40 PM 
-          img(src='/static/logo/exports/screenshot.jpeg', title='Total Device').imgbox
-          
-
-         
+           
     //- .widget-content.padded.pt-0(ng-if="allPending")
     //- i.fa.fa-spinner.fa-spin.fa-fw
     
@@ -217,6 +194,35 @@
             i.fa.fa-times
       .padded
         .row 
+        div(ng-if="logtype === 'logcatLogs'")
+          .col-sm-6
+            .form-group 
+              label Logcat Level   
+              //select.form-control(ng-model='session.config.logcatOption' ng-disabled='isViewing' ng-init="session.config.logcatOption = session.config.logcatOption||'verbose'" )
+             
+              select.form-control(ng-model='filters.priority', data-ng-options='l.name for l in filters.levelNumbers')
+                option(value='') {{translate}}
+            
+          .col-sm-6
+           
+            .form-group
+              label TID
+              input.form-control(type="text",  ng-model="session.config.tid", ng-disabled="IsViewing")
+          .col-sm-12
+            .form-group
+              label PID
+              input.form-control(type="text", ng-model="session.config.pid", ng-disabled='isViewing')
+            .form-group
+              label Tag 
+              input.form-control(type="text" , ng-model="session.config.tag", ng-disabled="IsViewing")
+            .form-group
+              label Text 
+              input.form-control(type="text",  name="logcatOption", ng-model="session.config.text", ng-disabled="IsViewing")
+            
+            
+            
+            
+              
         div(ng-if="logtype === 'qxdm'")
           .form-group
             label Select Option
@@ -239,19 +245,7 @@
           .form-group(ng-if="session.config.qxdmOption === 'packets'")
             label Packets
             input.form-control(type="text" ng-model="session.config.packets", ng-disabled='isViewing')
-        //- div(ng-if="logtype === 'qxdm'")
-        //-   .form-group
-        //-     label Mask File 
-        //-     //- select.form-control(ng-model='maskFile' ,ng-disabled='isViewing')
-        //-     //-   option(value='mask1') Sandstorm.dmc
-        //-     //-   option(value='mask2') Mask 2
-        //-     select.form-control(ng-model="session.config.selectedMaskFile"
-        //-       ng-init="selectedMaskFile = selectedMaskFile || maskFiles[0]",
-        //-       ng-options="file as file.maskFile + (file.configFile ? ' (' + file.configFile + ' packet config)' : '') for file in maskFiles"
-        //-       ng-change="selectMaskFile()" ng-disabled='isViewing')
-        //-   .form-group 
-        //-     label Packets 
-        //-     input.form-control(type="text" ng-model="session.config.packets" ,ng-disabled='isViewing')
+   
         
         div(ng-if="logtype === 'video'")
           .form-group
@@ -275,31 +269,7 @@
                 .radio
                   input(type="radio", name="bugrepoiortAction", ng-model="session.config.bugreportAction", value="clear", ng-change="updateBugreportAction()",ng-disabled='isViewing')
                   span Clear older bugreport before session start
-          
-        
-          
-          //- .col-sm-6
-          //-   .form-group
-          //-     label Logcat Level 
-          //-     input.form-control(type="text")
-          //-   .form-group
-          //-     label PID
-          //-     input.form-control(type="text")
-          //- .col-sm-6
-          //-   .form-group
-          //-     label Time 
-          //-     input.form-control(type="text")
-          //-   .form-group
-          //-     label TID
-          //-     input.form-control(type="text")
-          //- .col-sm-12
-          //-   .form-group
-          //-     label Tag 
-          //-     input.form-control(type="text")
-          //-   .form-group
-          //-     label Text 
-          //-     input.form-control(type="text")
-              
+            
         
           
             
