@@ -1,0 +1,55 @@
+//
+  Copyright © 2019 code initially contributed by Orange SA, authors: Denis Barbaron - Licensed under the Apache license 2.0
+//
+
+.widget-container.fluid-height.overflow-auto.group-list
+ .heading
+  nothing-to-show(
+    icon='fa-object-list'
+    message='{{"No Usage History" | translate}}' ng-if='!usages.length')
+
+  div(ng-if='usages.length')
+    form.form-inline
+      .form-group.group-list-header
+        stf-pager(
+          tooltip-label="{{'Group selection' | translate}}"
+          total-items='filteredGroups.length'
+          total-items-style='stf-pager-group-list-total-items'
+          items-per-page='scopeUsageListCtrl.groupItemsPerPage'
+          items-per-page-options='itemsPerPageOptions'
+          current-page='scopeUsageListCtrl.groupCurrentPage'
+          items-search='search')
+
+      .form-group.group-list-header
+        stf-column-choice(reset-data='resetData()' column-data='usageDataList.columns')
+
+    table.table.table-hover.dataTable.ng-table
+      thead
+        tr
+          th.header.sortable(
+            ng-class='[column.sort]'
+            ng-repeat='column in usageDataList.columns | filter: {selected: true}'
+            ng-click='sortBy(usageDataList, column)')
+              div.strong(ng-bind-template='{{::column.name | translate}}')
+      tbody
+        tr(ng-repeat="item in usages \
+          | filter:search \
+          | orderBy:groupColumns[usageDataList.sort.index].property:usageDataList.sort.reverse \
+          | pagedObjectsFilter:scopeUsageListCtrl:'groupCurrentPage':'groupItemsPerPage':'filteredGroups' \
+          track by item.id")
+
+          td.selectable(ng-if='usageDataList.columns[0].selected')
+            i.fa.fa-object-group.group-icon
+            span {{item.userName}}
+          td.selectable(ng-if='usageDataList.columns[1].selected') {{::item.userEmail}}
+          td(ng-if='usageDataList.columns[2].selected && item.usage !== null') {{item.usage}}
+          td(ng-if='usageDataList.columns[2].selected && item.usage === null') Manual
+          td(ng-if='usageDataList.columns[3].selected') {{item.serial}}
+          td(ng-if='usageDataList.columns[4].selected') {{item.provider}}
+          td(ng-if='usageDataList.columns[5].selected') {{item.startUsageTime | date: 'dd/MM/yyyy hh:mm a' }}
+          td(ng-if='usageDataList.columns[6].selected && item.endUsageTime === null' class='color-green') Ongoing
+          td(ng-if='usageDataList.columns[6].selected && item.durationDeviceUsed !== null && item.endUsageTime !== null') {{getDuration(item.durationDeviceUsed)}}
+          td(ng-if='devicelist && devicelist !== null && devicelist !== undefined && usageDataList.columns[7].selected') {{ devicelist[item.serial].group.name}}
+          td(ng-if='devicelist && devicelist !== null && devicelist !== undefined && usageDataList.columns[8].selected') {{ devicelist[item.serial].manufacturer}}
+          td(ng-if='devicelist && devicelist !== null && devicelist !== undefined && usageDataList.columns[9].selected') {{ devicelist[item.serial].model}}
+          td(ng-if='devicelist && devicelist !== null && devicelist !== undefined && usageDataList.columns[10].selected') {{ devicelist[item.serial].marketName}}
