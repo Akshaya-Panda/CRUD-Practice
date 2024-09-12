@@ -15,9 +15,7 @@
         button.btn.pull-right.btn-sm.btn-secondary-outline(ng-if="isRunning" ng-click="clearCustomization_1()")
           i.fa.fa-repeat
           span Clear
-        //- button.btn.pull-right.btn-primary.btn-sm(ng-if="isRunning")
-        //-   i.fa.fa-camera
-        //-   span Capture Screenshot
+        
         
           
     .padded
@@ -25,10 +23,24 @@
         .col-sm-12
           
           .widget-content.padded.pt-0(ng-if="showHistory")
-            i.fa.fa-spinner.fa-spin.fa-fw
+            i.fa.fa-spinner.fa-spin.fa-fw(ng-show="isFetchingHistory")
             
-          div(ng-if='showHistory')
+          div(ng-if='showHistory' && '!isFetchingHistory')
+            table.tableble-condensed
             h5 {{"History" | translate}}
+            div.form-group
+              label(for="itemsPerPage") Items to display Per Page :
+              select#itemsPerPage.form-control(ng-model="itemsPerPage",ng-options="option for option in pageOptions",ng-change="updateItemsPerPage()",style="display: flex; width: min-content;")
+            uib-pagination(
+            total-items="history.length"
+            ng-model="currentPage"
+            items-per-page="itemsPerPage"
+            max-size="5"
+            boundary-links="true"
+            ng-change="pageChanged()"
+            class="pagination-sm"
+            boundary-link-numbers="true"
+            rotate="false") 
             
             table.table.table-condensed(ng-if="history.length > 0")
               thead
@@ -40,7 +52,7 @@
                   th Post Processing 
                   th Status
               tbody
-                tr(ng-repeat='testCase in history track by $index')
+                tr(ng-repeat="testCase in history | limitTo: itemsPerPage : (currentPage - 1) * itemsPerPage track by $index")
                   td
                     span {{testCase.testCaseID}}
                   td
@@ -72,11 +84,12 @@
                           strong
                             span(translate) Uploading...
                             span  ({{testCase.uploadProgress}}%)
+                 
                             
             div(ng-if="history.length == 0")
               span No test cases executed yet.
         .col-sm-6
-          .form-group
+          .form-group(ng-if='!isRunning')
             label 
               | Session Name 
               span.text-danger *
@@ -91,7 +104,7 @@
             //-   option(value='device1')Moto G2 
             //-   option(value='device2')Moto G3 
           .form-group(ng-if='!isRunning')
-            label Pair More Devices
+            label Pair More Devices <i> (Optional) </i>
             select.form-control(ng-model='selectedDevice')
               option(value='device1') EA211001
               option(value='device2') moto g stylus 5G (2022)
@@ -208,16 +221,17 @@
             .form-group
               label TID
               input.form-control(type="text",  ng-model="session.config.tid", ng-disabled="IsViewing")
-          .col-sm-12
+          .col-sm-6
             .form-group
               label PID
               input.form-control(type="text", ng-model="session.config.pid", ng-disabled='isViewing')
+          .col-sm-6
             .form-group
               label Tag 
               input.form-control(type="text" , ng-model="session.config.tag", ng-disabled="IsViewing")
-            .form-group
-              label Text 
-              input.form-control(type="text",  name="logcatOption", ng-model="session.config.text", ng-disabled="IsViewing")
+          .form-group
+            label Text 
+            input.form-control(type="text",  name="logcatOption", ng-model="session.config.text", ng-disabled="IsViewing")
             
             
             
