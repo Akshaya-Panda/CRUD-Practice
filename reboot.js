@@ -1,35 +1,33 @@
-var syrup = require('@devicefarmer/stf-syrup')
-
-var logger = require('../../../util/logger')
-var wire = require('../../../wire')
-var wireutil = require('../../../wire/util')
+const syrup = require('@devicefarmer/stf-syrup')
+const Promise = require('bluebird')
+const logger = require('../../../util/logger')
+const wire = require('../../../wire')
+const wireutil = require('../../../wire/util')
+const {exec} = require('child_process')
 
 module.exports = syrup.serial()
-  .dependency(require('../support/adb'))
   .dependency(require('../support/router'))
   .dependency(require('../support/push'))
-  .define(function(options, adb, router, push) {
-    var log = logger.createLogger('device:plugins:reboot')
+  .define((options, router, push) => {
+    const log = logger.createLogger('device:plugins:reboot')
 
-    router.on(wire.RebootMessage, function(channel) {
-      var reply = wireutil.reply(options.serial)
-
-      log.important('Rebooting')
-
-      adb.reboot(options.serial)
-        .timeout(30000)
-        .then(function() {
-          push.send([
-            channel
-          , reply.okay()
-          ])
-        })
-        .error(function(err) {
-          log.error('Reboot failed', err.stack)
-          push.send([
-            channel
-          , reply.fail(err.message)
-          ])
-        })
+    router.on(wire.RebootMessage, (channel) => {
+        const reply = wireutil.reply(options.serial)
+        let udid = options.serial.replace("-", "")
+        exec(`ios reboot --udid=${udid}`) // this command that launches restart
+         Promise.delay(5000)
+         .then(() => {
+            push.send([
+              channel
+            , reply.okay()
+            ])
+          })
+          .error((err) => {
+            log.error('Reboot failed', err.stack)
+            push.send([
+              channel
+            , reply.fail(err.message)
+            ])
+          })
     })
   })
