@@ -1,0 +1,32 @@
+0|ios-provider  | resources appium 🚀 ~ .stdout.on ~ wda runtime error: ReqlNonExistenceError: Cannot perform pluck on a non-object non-sequence `null` in:
+0|ios-provider  | r.table("devices").get("00008120-000258DA1112201E").pluck("stopWDA")
+0|ios-provider  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                 
+0|ios-provider  |     at ReqlNonExistenceError.ReqlError [as constructor] (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/errors.js:23:13)
+0|ios-provider  |     at ReqlNonExistenceError.ReqlRuntimeError [as constructor] (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/errors.js:90:51)
+0|ios-provider  |     at ReqlNonExistenceError.ReqlQueryLogicError [as constructor] (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/errors.js:101:54)
+0|ios-provider  |     at new ReqlNonExistenceError (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/errors.js:112:56)
+0|ios-provider  |     at mkErr (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/util.js:177:10)
+0|ios-provider  |     at TcpConnection.Connection._processResponse (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/net.js:152:16)
+0|ios-provider  |     at TcpConnection.Connection._data (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/net.js:122:12)
+0|ios-provider  |     at Socket.<anonymous> (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/net.js:689:32)
+0|ios-provider  |     at Socket.emit (node:events:390:28)
+0|ios-provider  |     at addChunk (node:internal/streams/readable:324:12)
+0|ios-provider  |     at readableAddChunk (node:internal/streams/readable:297:9)
+0|ios-provider  |     at Socket.Readable.push (node:internal/streams/readable:234:10)
+0|ios-provider  |     at TCP.onStreamRead (node:internal/stream_base_commons:199:23)
+0|ios-provider  | From previous event:
+0|ios-provider  |     at Function.TermBase.run (/Users/mnode-007/tmdc/devicefarmer-stf/node_modules/rethinkdb/ast.js:135:12)
+0|ios-provider  |     at /Users/mnode-007/tmdc/devicefarmer-stf/lib/db/index.js:129:14
+0|ios-provider  |     at processImmediate (node:internal/timers:464:21)
+0|ios-provider  | From previous event:
+0|ios-provider  |     at Object.db.run (/Users/mnode-007/tmdc/devicefarmer-stf/lib/db/index.js:128:23)
+0|ios-provider  |     at Object.dbapi.getAutomationAndWDAState (/Users/mnode-007/tmdc/devicefarmer-stf/lib/db/api.js:136:13)
+0|ios-provider  |     at Socket.<anonymous> (/Users/mnode-007/tmdc/devicefarmer-stf/lib/units/ios-device/resources/appium.js:172:43)
+0|ios-provider  |     at Socket.emit (node:events:390:28)
+0|ios-provider  |     at addChunk (node:internal/streams/readable:324:12)
+0|ios-provider  |     at readableAddChunk (node:internal/streams/readable:297:9)
+0|ios-provider  |     at Socket.Readable.push (node:internal/streams/readable:234:10)
+0|ios-provider  |     at Pipe.onStreamRead (node:internal/stream_base_commons:199:23) {
+0|ios-provider  |   msg: 'Cannot perform pluck on a non-object non-sequence `null`.',
+0|ios-provider  |   frames: [ 0 ]
+0|ios-provider  | }
