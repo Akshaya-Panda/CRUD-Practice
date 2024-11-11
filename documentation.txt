@@ -1,0 +1,66 @@
+1)	Create a directory and named it as master.
+mkdir master
+cd master
+cd tmdc
+git clone https://github.com/techm-dc/devicefarmer-stf.git
+cd devicefarmer-stf
+git checkout ios-wda-api-automation
+python3 –-version
+pyenv install 3.8.10
+pyenv install 2.7.18
+pyenv local 3.8.10 2.7.18
+python3 –version -> python 3.8.10
+python2 –version -> python 2.7.18
+nvm use 8
+npm i
+brew services list
+brew install rethinkdb
+sudo find / -type d -name 'rethinkdb_data'
+go the folder where rethinkdb_data is
+then create a file named intance1.conf
+nano instance1.conf 
+inside the file we have to write bind=all
+brew services start rethinkdb
+brew services list
+we can see now the rethinkdb is in running state
+nvm use 8 
+stf migrate
+npm link –force
+cd ../..
+git clone https://github.com/techm-dc/tmss-scripts
+cd tmss-scripts
+brew install nginx
+after that go the path /opt/homebrew/etc/nginx
+here nginx.conf file will be there 
+we we will add include /opt/homebrew/etc/nginx/conf.d/*.coanf;
+we will make one directory there
+mkdir conf.d
+cd conf.d
+nano localdeploy.conf
+here we will paste the contents of master server and will change the url of the master server and the location and the ip corresponding to the master.
+the we will go the tmdc folder here we will make the stf-ssl-certs .
+inside the stf-ssl-certs we will make the fullchain and private.pem files 
+and after that we will run the command nginx -t . our nginx configuration should be successfull. If our nginx configuration is failed we have to do the debugging according to that.
+then we will start the nginx by the command 
+brew services start nginx
+our nginx should be successfully started in the background.
+
+Then we will go the tmss-scripts folder under the master folder . In that we will go the tmdcsecure .
+cd master/tmss-scripts/tmdcsecure
+we have to change the tmdc_deploy.env file with the specific contents ..we have to change the tmdc_url, ip address, saml_entry point and the save the file .
+after that we will change the stf-ecosystem.config.js file we have to change the path there we have to put the correct path of the devicefarmer-stf which is under the master/ytmdc/devicefarmer-stf and have to change the app url and the ip address in the whole file and have to add the app-url in the provider and the stf-api.
+And have to change the saml entry point url in the stf-auth-3000 and the path to the saml.crt.
+We have create a cert folder under the master/tmdc/cert/saml.crt.
+
+Then we will start the stf-ecosystemconfig.js by running the command
+pm2 start st-ecosystemconfig.js 
+we can see now all the services are running .
+
+In the other terminal we will now go the iosprovider-ecosystemconfig.js file and have to do the changes by changing the tmdc url and the ip address and in the rethinkdb we will add 127.0.0.1 and will save it and will run the iosprovider by running the pm2 start iosprovider-ecosystemconfig.js and and in the other terminal where our stf-ecosystem.js is running we will delete all the services and then again we will start 
+pm2 delete all ; pm2 start stf-ecosystemconfig.js then we can see the ios-provider service is running with all the services and we can check the UI .
+if the UI is still not loaded .. then we will go the tmdc folder 
+cd master/tmdc/devicefarmer-stf
+nvm ls
+nvm use 12
+npm run prepare
+then we will check the UI , we can see the UI will be loading and the device is in use state now.
