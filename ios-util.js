@@ -6,7 +6,19 @@ const kill = require('tree-kill')
 var log = logger.createLogger('iosutil')
 var pythonProgram ;
 var tunnelproccess;
+var EventEmitter = require("eventemitter3")
+const wdaEvents = new EventEmitter();
+const wire = require('../../../../wire')
+const wireutil =require('../../../../wire/util')
+const push = require('../../support/push')
+const sub =require('../../support/sub')
+const syrup = require('@devicefarmer/stf-syrup')
 
+module.exports = syrup.serial()
+  .dependency(require('../../support/sub'))
+  .dependency(require('../../support/push'))
+  .dependency(require('../../plugins/info'))
+  .define((options, sub, push, info) => {
 let iosutil = {
   asciiparser: function(key) {
     switch (key) {
@@ -48,9 +60,11 @@ let iosutil = {
   pressButton: function(key) {
     switch (key) {
       case 'volume_up':
-        return this.pressButton('volumeUp')
+        return true
+        //return this.pressButton('volumeUp')
       case 'volume_down':
-        return this.pressButton('volumeDown')
+        return true
+        //return this.pressButton('volumeDown')
       case 'power':
         return this.pressPower()
       case 'camera':
@@ -62,7 +76,7 @@ let iosutil = {
       case 'mute': {
         let i
           for(i = 0; i < 25; i++) {
-            this.pressButton('volumeDown')
+            //this.pressButton('volumeDown')
           }
           return true }
 
@@ -120,18 +134,60 @@ let iosutil = {
     kill(tunnelproccess.pid);
     console.log('WDA start script killed successfully!');
   },
+  rebootCount:0,
+  retryCount:0,
+  rebootDevice: function(UDID){
+    return new Promise((resolve,reject) =>{
+      log.info(`Rebooting device with UDID: ${UDID}`);
+      exec(`ios reboot --udid=${UDID}`,(error,stdout,stderr)=>{
+        if(error){
+          log.error(`Reboot failed: ${error.message}`);
+          return reject(error);
+        }
+        if(stderr){
+          log.error(`Reboot stderr: ${stderr}`);
+          return reject(new Error(stderr));
+        }
+        this.rebootCount++;
+        log.info(`Reboot successful (Count:${this.rebootCount}): ${stdout}`);
+        resolve(true);
+      });
+    });
+  },
+  emitDeviceState: function(channel, state, serial) {
+    push.send([
+      channel,
+      wireutil.envelope(new wire.DeviceStateMessage(
+        serial,
+        state
+      ))
+    ])
+  },
   runWdaScript: async function(host, appiumPort, UDID, wdaPort ) {
     return new Promise(async (resolve, reject) => {
       try {
+        // if(process & process.send){
+        //   process.send('preparing');
+        // }
+
+        // const preparingInterval = setInterval(()=>{
+        //   if(process & process.send){
+        //     process.send('preparing')
+        //   }
+        // },1000)
+        this.emitDeviceState(wireutil.global, 'preparing', UDID)
         //python script to run wda on device
         const pythonScriptPath = path.join(__dirname,'..','..','..','..','..','vendor', 'wdaRunner.py')
         const defaults = { cwd: path.parse(pythonScriptPath).dir }
         console.log(defaults)
         log.info("spawn"+pythonScriptPath)
+        log.info(`Starting WDA (Attemp ${this.retryCount+1}):${pythonScriptPath}`);
         pythonProgram = spawn('python3', [pythonScriptPath, `http://${host}:${appiumPort}`, UDID, wdaPort], defaults)
         log.info("python "+pythonScriptPath+` http://${host}:${appiumPort}`+ " "+UDID+ " "+wdaPort)
         pythonProgram.stdout.on('data', (data) => {
           if(data.toString().includes("wda started successfully")){
+            //clearInterval(preparingInterval)
+            this.retryCount = 0;
             resolve(true)
           }
           log.info('python_service: on data ' + data.toString())
@@ -147,6 +203,11 @@ let iosutil = {
           log.info('python_service stderr data: ' + data.toString())
 
           if(data.toString().includes("terminated")){
+            this.emitDeviceState(wireutil.global, 'preparing', UDID)
+            
+           // wdaEvents.emit('wdaStatus',{UDID, status: 'preparing'})
+
+            // if WDA terminates, try starting the tunnel process
             const tunnelscript = path.join(__dirname,'..','..','..','..','..','vendor', 'startTunnel.py')
             tunnelproccess = spawn('python3', [tunnelscript, UDID, wdaPort], defaults)
             tunnelproccess.stdout.on('data', data => {
@@ -154,19 +215,50 @@ let iosutil = {
             })
             log.info("python "+tunnelscript+ " "+UDID+ " "+wdaPort)
           }
-          if(data.toString().includes("File")){
-            throw new Error(data.toString());
+          if(data.toString().includes("File") || data.toString().includes("Unable to launch WebDriverAgent") ){
+           // wdaEvents.emit('wdaStatus',{UDID, status: 'preparing'})
+           this.emitDeviceState(wireutil.global, 'preparing', UDID)
+            if(this.retryCount === 0){
+              log.warn("WDA failed to start , retrying...")
+              this.retryCount++;
+              return resolve(this.runWdaScript(host,appiumPort,UDID,wdaPort));
+            }
+            else if(this.retryCount === 1){
+              log.error("WDA failed again, rebooting device...")
+            
+            
+            try{
+               this.rebootDevice(UDID);
+               this.retryCount++;
+               return resolve(this.runWdaScript(host,appiumPort,UDID,wdaPort));
+              // reject(new Error("WDA failed to start,device rebooted"));
+            }catch(rebootError){
+              log.error(`Failed to reboot device after WDA failure: ${rebootError.message}`);
+              wdaEvents.emit('wdaStatus',{UDID, status: 'preparing'})
+              reject(rebootError)
+            }
+            //throw new Error(data.toString());
           }
-
+        }
+          else{
+          
+            log.error(`WDA failed to start after: ${this.rebootCount} reboots. Final error : ${data.toString()}`)
+           // wdaEvents.emit('wdaStatus',{UDID, status: 'preparing'})
+            reject(new Error(`WDA failed to start after: ${this.rebootCount} reboots.`))
+          }
         })
 
       } catch (error) {
         log.error(`Unable to start WDA ${error.stack}`)
+        wdaEvents.emit('wdaStatus',{UDID, status: 'preparing'})
+       
         reject(error)
       }
     })
   }
 
 }
+module.exports=iosutil
+  })
 
-module.exports = iosutil
+
