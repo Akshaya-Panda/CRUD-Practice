@@ -1,0 +1,138 @@
+turnOnHubPort = function(portID, hubID){
+    return Hubtoolpycmd("port_on",hubID, portID)
+}
+
+turnOffHubPort = function(portID, hubID){
+    return Hubtoolpycmd("port_off",hubID,portID)
+}
+
+hubPortStatus = function(portID,hubID) {
+    return Hubtoolpycmd("port_status",hubID,portID)
+}
+lib/util/hubctl.js
+
+
+var dbapi = require('../../../db/api')
+var logger = require('../../../util/logger')
+var log = logger.createLogger('api:controllers:hubctl')
+var hubctl = require('../../../util/hubctl')
+var request = require('request');
+const apiutil = require('../../../util/apiutil')
+
+reconnectDeviceBySerial = function(req,res){
+   
+    const serial = apiutil.getBodyParameter(req.body, 'serial')
+    dbapi.getDeviceById(serial)
+  .then(function(device) {
+    if(device.canVirtualDisconnect){
+        if    (device.provider && device.provider.hosturl  == '127.0.0.1'){
+            hubctl.turnOffHubPort(device.hubctl.portID , device.hubctl.hubID)
+            .then(success=>{
+                setTimeout(() => {
+                    hubctl.turnOnHubPort(device.hubctl.portID, device.hubctl.hubID)
+                },1000)
+                res.status(200).json({success:true})
+            }).catch(err=>{
+                res.status(200).json({
+                    success:false,
+                    message:`internal error`
+                })
+            })
+        }else if(device.provider && device.provider.hosturl) {
+
+            var options = {
+                'method': 'PUT',
+                'url': `http://${device.provider.hosturl}` + `/hubctl-proxy/hubctl-reconnect-devices`,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                body:JSON.stringify({'portID':device.hubctl.portID ,'hubID': device.hubctl.hubID})
+            };
+            request(options, function (error, response) {
+                if(error){
+                    res.status(200).json(error)
+                    return
+                }
+                res.status(200).json({success:true,message:response.data})
+    
+            })
+    
+            } else {
+            res.status(200).json({
+                success:false,
+                message:`slave hubctl not implemented`
+            }) 
+        }
+    }else{
+        res.status(200).json({
+            success:false,
+            message:`this device can't be controlled with hubctl`
+        })
+    }
+  }).catch(err=>{
+    res.status(403).json({
+        success:false,
+        message:`internal error ${err}`
+    })
+})
+}
+
+getHubPortStatsuBySerial = function(req,res){
+    const serial = req.swagger.params.serial.value
+    dbapi.getDeviceById(serial)
+  .then(function(device) {
+    if(device.canVirtualDisconnect){
+        if    (device.provider && device.provider.hosturl  == '127.0.0.1'){
+            hubctl.hubPortStatus(device.hubctl.portID , device.hubctl.hubID)
+            .then(success=>{
+                res.status(200).json({success:true,message:success})
+            }).catch(err=>{
+                res.status(403).json({
+                    success:false,
+                    message:`internal error`
+                })
+            })
+        } else if(device.provider && device.provider.hosturl) {
+
+              
+        var options = {
+            'method': 'GET',
+            'url': `http://${device.provider.hosturl}` + `/hubctl-proxy/hubctl-port-status/${device.hubctl.hubID}/${device.hubctl.portID }`,
+            'headers': {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+        };
+        request(options, function (error, response) {
+            if(error){
+                res.status(403).json(error)
+                return
+            }
+            res.status(200).json({success:true,message:JSON.parse(response.data)})
+
+        })
+
+        }else {
+            res.status(403).json({
+                success:false,
+                message:`slave hubctl not implemented`
+            }) 
+        }
+    }else{
+        res.status(403).json({
+            success:false,
+            message:`this device can't be controlled with hubctl`
+        })
+    }
+  }).catch(err=>{
+    res.status(403).json({
+        success:false,
+        message:`internal error`
+    })
+})
+}
+
+module.exports = {
+    reconnectDeviceBySerial: reconnectDeviceBySerial,getHubPortStatsuBySerial: getHubPortStatsuBySerial}
+
+lib/units/api/controllers/hubctl.js
+
