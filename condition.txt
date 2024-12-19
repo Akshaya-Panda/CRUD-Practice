@@ -1,0 +1,43 @@
+const poweredOffPorts =new Set();
+    const poweredOnPorts = new Set();
+    const defaultPorts = new Set();
+    const portKey =`${message.hubID}:${message.portID}`
+      if(message.level>=95 && message.status === 'charging' && !poweredOffPorts.has(portKey)){
+        
+          hubctl.turnOffPower(message.portID,message.hubID,message.level)
+
+        .then(()=>{
+          log.info(`Power on ${message.portID} and  ${message.hubID} turned off due to battery level:${message.level}`)
+          poweredOffPorts.add(portKey)
+          poweredOnPorts.delete(portKey)
+          defaultPorts.delete(portKey)
+        })
+        .catch(err =>{
+          log.error(`Error turning off port:${err}`);
+        })
+
+      }
+     if(message.level<=40 && message.status === 'not_charging' && !poweredOnPorts.has(portKey)){
+        hubctl.turnOnPower(message.portID,message.hubID,message.level)
+        .then(()=>{
+          log.info(`Power turned on due to battery level:${message.level}`)
+          poweredOnPorts.add(portKey)
+          poweredOffPorts.delete(portKey)
+          defaultPorts.delete(portKey)
+        })
+        .catch(err =>{
+          log.error(`Error turning on port:${err}`);
+        })
+      }
+
+     if((message.level>=95 && message.status === 'full')||(message.level>=95 && message.status === 'not_charging')||
+        (message.level<=40 && message.status === 'charging')||(message.status === 'discharging')){
+          if(!defaultPorts.has(portKey)){
+          log.info(`No action needed for battery`)
+          defaultPorts.add(portKey)
+        }
+      }
+    if((message.level<95 && defaultPorts.has(portKey))||(message.level>40 && defaultPorts.has(portKey)))
+    {
+      defaultPorts.delete(portKey)
+    }
